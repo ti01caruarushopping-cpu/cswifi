@@ -3,29 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<!-- PWA / Instalável -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="CS Wi-Fi">
-<meta name="application-name" content="CS Wi-Fi">
 <meta name="theme-color" content="#0d0f12">
-<meta name="msapplication-TileColor" content="#0d0f12">
-<meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
-
-<!-- SEO / Descrição -->
-<meta name="description" content="Monitoramento de antenas Wi-Fi — Caruaru Shopping">
-<meta name="robots" content="noindex, nofollow">
-
-<!-- Manifest e ícones -->
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" type="image/png" href="/favicon.png">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-<link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
-<link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
-
-<title>CS Wi-Fi — Caruaru Shopping</title>
+<title>CS Wi-Fi — Medições</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -271,11 +252,173 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 /* Medidor de latência */
 .ping-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+
+/* ── RELATÓRIOS ── */
+.rel-header{padding:14px 16px 10px;}
+.rel-tipo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.rel-tipo-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px 10px;text-align:center;cursor:pointer;transition:all 0.15s;}
+.rel-tipo-btn.active{background:var(--info-bg);border-color:var(--info-b);}
+.rel-tipo-icon{font-size:22px;margin-bottom:4px;}
+.rel-tipo-lbl{font-size:12px;font-weight:600;}
+.rel-tipo-sub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.rel-tipo-btn.active .rel-tipo-lbl{color:var(--info);}
+.rel-filtro-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:4px;}
+.rel-filtro-row .field{flex:1;margin:0;}
+.rel-gerar-btn{background:var(--info);color:#fff;border:none;border-radius:9px;padding:11px 18px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--sans);white-space:nowrap;flex-shrink:0;transition:background 0.15s;}
+.rel-gerar-btn:hover{background:#4a8af0;}
+.rel-gerar-btn:active{transform:scale(0.97);}
+.rel-resultado{padding:0 16px 80px;}
+
+/* KPI grid */
+.rel-kpi-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.rel-kpi-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px;}
+@media(max-width:380px){.rel-kpi-grid-4{grid-template-columns:repeat(2,1fr);}}
+.rel-kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:12px 10px;text-align:center;position:relative;overflow:hidden;}
+.rel-kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.rel-kpi-card.kpi-blue::before{background:var(--info);}
+.rel-kpi-card.kpi-green::before{background:var(--ok);}
+.rel-kpi-card.kpi-yellow::before{background:var(--warn);}
+.rel-kpi-card.kpi-red::before{background:var(--bad);}
+.rel-kpi-card.kpi-purple::before{background:var(--purple);}
+.rel-kpi-icon{font-size:18px;margin-bottom:4px;}
+.rel-kpi-val{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1;}
+.rel-kpi-lbl{font-size:9px;font-family:var(--mono);color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:0.05em;}
+.rel-kpi-sub{font-size:9px;font-family:var(--mono);margin-top:2px;}
+
+/* Gráficos */
+.rel-chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+.rel-chart-title{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.rel-chart-wrap{position:relative;}
+
+/* Gauge / Donut central */
+.rel-donut-wrap{display:flex;align-items:center;gap:16px;}
+.rel-donut-canvas{flex-shrink:0;}
+.rel-donut-legend{flex:1;display:flex;flex-direction:column;gap:6px;}
+.rel-legend-item{display:flex;align-items:center;gap:6px;}
+.rel-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.rel-legend-lbl{font-size:11px;color:var(--text2);font-family:var(--mono);}
+.rel-legend-val{font-size:12px;font-weight:700;font-family:var(--mono);margin-left:auto;}
+
+/* Barra de ranking */
+.rel-rank-list{display:flex;flex-direction:column;gap:6px;}
+.rel-rank-item{display:flex;align-items:center;gap:8px;}
+.rel-rank-num{font-size:10px;font-family:var(--mono);color:var(--text3);width:16px;flex-shrink:0;text-align:right;}
+.rel-rank-name{font-size:11px;font-weight:500;width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rel-rank-bar-bg{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.rel-rank-bar-fill{height:100%;border-radius:3px;transition:width 0.8s cubic-bezier(.4,0,.2,1);}
+.rel-rank-val{font-size:11px;font-weight:700;font-family:var(--mono);width:42px;text-align:right;flex-shrink:0;}
+
+/* Antena card detalhado */
+.rel-ant-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:7px;}
+.rel-ant-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.rel-ant-name{font-size:13px;font-weight:600;}
+.rel-ant-status{font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:4px;}
+.rel-medicoes{display:flex;flex-direction:column;gap:5px;}
+.rel-med-row{background:var(--bg3);border-radius:7px;padding:8px 10px;display:flex;align-items:center;gap:8px;}
+.rel-med-plat{font-size:10px;font-family:var(--mono);color:var(--text2);width:62px;flex-shrink:0;}
+.rel-med-speeds{display:flex;gap:8px;flex:1;align-items:center;}
+.rel-med-speed-item{text-align:center;}
+.rel-med-speed-val{font-size:13px;font-weight:700;font-family:var(--mono);}
+.rel-med-speed-lbl{font-size:8px;color:var(--text3);font-family:var(--mono);}
+.rel-med-bar-wrap{flex:1;max-width:60px;}
+.rel-med-mini-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-top:3px;}
+.rel-med-mini-fill{height:100%;border-radius:2px;}
+.rel-ant-sem-med{font-size:11px;color:var(--text3);font-family:var(--mono);text-align:center;padding:8px;background:var(--bg3);border-radius:7px;}
+.rel-ant-item.ok{border-left:3px solid var(--ok);}
+.rel-ant-item.alerta{border-left:3px solid var(--bad);}
+.rel-ant-item.atencao{border-left:3px solid var(--warn);}
+.rel-ant-item.isento{border-left:3px solid var(--purple);}
+.rel-ant-item.sem-med{border-left:3px solid var(--text3);}
+
+/* Seção colapsável mensal */
+.rel-dia-toggle{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all 0.15s;}
+.rel-dia-toggle:hover{border-color:var(--border2);}
+.rel-dia-toggle-left{display:flex;flex-direction:column;gap:2px;}
+.rel-dia-toggle-date{font-size:12px;font-weight:600;color:var(--text);}
+.rel-dia-toggle-stats{display:flex;gap:8px;}
+.rel-dia-stat{font-size:10px;font-family:var(--mono);}
+.rel-dia-toggle-arrow{font-size:14px;color:var(--text3);transition:transform 0.2s;}
+.rel-dia-toggle.open .rel-dia-toggle-arrow{transform:rotate(180deg);}
+.rel-dia-body{display:none;padding:0 0 8px;}
+.rel-dia-body.open{display:block;}
+
+/* Separador de seção */
+.rel-section-lbl{font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);padding:10px 0 6px;border-top:1px solid var(--border);margin-top:6px;}
+
+.rel-empty-state{text-align:center;padding:40px 20px;color:var(--text3);}
+.rel-empty-icon{font-size:38px;margin-bottom:10px;}
+.rel-empty-msg{font-size:13px;color:var(--text2);}
+
+/* Indicador de cobertura circular simples */
+.rel-coverage-ring{position:relative;display:inline-flex;align-items:center;justify-content:center;}
+.rel-coverage-center{position:absolute;text-align:center;}
+.rel-coverage-pct{font-size:20px;font-weight:700;font-family:var(--mono);}
+.rel-coverage-lbl{font-size:8px;font-family:var(--mono);color:var(--text3);}
+
+/* Pill de tendência */
+.rel-trend{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-family:var(--mono);padding:2px 6px;border-radius:4px;}
+.rel-trend.up{background:var(--ok-bg);color:var(--ok);}
+.rel-trend.down{background:var(--bad-bg);color:var(--bad);}
+.rel-trend.flat{background:var(--bg4);color:var(--text3);}
+
+/* ── BOTÃO EXPORTAR FLUTUANTE ── */
+.rel-export-fab{
+  position:fixed;bottom:calc(var(--nav-h) + 14px);right:16px;
+  z-index:150;display:none;
+  background:linear-gradient(135deg,#5b9cf6,#4a8af0);
+  color:#fff;border:none;border-radius:14px;
+  padding:11px 16px;font-size:13px;font-weight:600;
+  font-family:var(--sans);cursor:pointer;
+  box-shadow:0 4px 20px rgba(91,156,246,0.45);
+  display:none;align-items:center;gap:7px;
+  transition:transform 0.15s,box-shadow 0.15s;
+}
+.rel-export-fab:active{transform:scale(0.95);}
+.rel-export-fab.visible{display:flex;}
+
+/* ── MODAL EXPORTAR ── */
+.export-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:250;display:none;align-items:flex-end;justify-content:center;}
+.export-overlay.open{display:flex;}
+.export-modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px 14px 0 0;width:100%;max-width:480px;padding:20px 20px 28px;}
+@media(min-width:600px){.export-modal{border-radius:14px;margin-bottom:24px;}}
+.export-modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.export-modal-title{font-size:15px;font-weight:600;}
+.export-close{background:var(--bg4);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:15px;}
+.export-options{display:flex;flex-direction:column;gap:10px;}
+.export-opt{background:var(--bg3);border:1px solid var(--border);border-radius:11px;padding:14px 16px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all 0.15s;}
+.export-opt:hover{border-color:var(--border2);background:var(--bg4);}
+.export-opt:active{transform:scale(0.98);}
+.export-opt-icon{font-size:24px;flex-shrink:0;}
+.export-opt-info{flex:1;}
+.export-opt-lbl{font-size:13px;font-weight:600;margin-bottom:2px;}
+.export-opt-sub{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.export-opt-arr{font-size:16px;color:var(--text3);}
+
+/* ── PRINT ── */
+@media print{
+  #view-login,#view-app .topbar,#view-app .bottom-nav,
+  .rel-export-fab,.rel-header,.rel-tipo-grid,
+  .rel-filtro-dia,.rel-filtro-mes,
+  .export-overlay,
+  #scr-dash,#scr-lancar,#scr-historico,#scr-antenas,#scr-perfil{display:none!important;}
+  #view-app{display:block!important;position:static!important;}
+  #scr-relatorios{display:block!important;position:static!important;overflow:visible!important;padding:0!important;}
+  .screen{display:none!important;}
+  #scr-relatorios.screen{display:block!important;}
+  .rel-resultado{padding:0!important;}
+  body{background:#fff!important;color:#000!important;}
+  .rel-kpi-card,.rel-chart-card,.rel-ant-item,.rel-med-row{border:1px solid #ccc!important;background:#f9f9f9!important;}
+  .rel-kpi-val,.rel-ant-name{color:#000!important;}
+  .rel-dia-body{display:block!important;}
+  canvas{max-width:100%!important;}
+  @page{margin:15mm;}
+}
 .ping-label{font-size:11px;color:var(--text2);font-family:var(--mono);width:90px;flex-shrink:0;}
 .ping-bg{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;}
 .ping-fill{height:100%;border-radius:3px;transition:width 0.8s;}
 .ping-val{font-size:11px;font-family:var(--mono);font-weight:600;width:50px;text-align:right;}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -413,15 +556,113 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
     </div>
 
+    <!-- RELATÓRIOS -->
+    <div id="scr-relatorios" class="screen">
+      <div class="rel-header">
+        <div style="font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:10px;">Tipo de relatório</div>
+        <div class="rel-tipo-grid">
+          <div class="rel-tipo-btn active" id="rel-btn-dia" onclick="selecionarTipoRel('dia')">
+            <div class="rel-tipo-icon">📅</div>
+            <div class="rel-tipo-lbl">Por Dia</div>
+            <div class="rel-tipo-sub">todas as antenas<br>em uma data</div>
+          </div>
+          <div class="rel-tipo-btn" id="rel-btn-mes" onclick="selecionarTipoRel('mes')">
+            <div class="rel-tipo-icon">📆</div>
+            <div class="rel-tipo-lbl">Por Mês</div>
+            <div class="rel-tipo-sub">todas as medições<br>do mês selecionado</div>
+          </div>
+        </div>
+
+        <!-- Filtro Dia -->
+        <div id="rel-filtro-dia">
+          <div class="rel-filtro-row">
+            <div class="field">
+              <label>Data</label>
+              <input type="date" id="rel-data-dia" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:11px 13px;color:var(--text);font-size:15px;font-family:var(--sans);outline:none;width:100%;">
+            </div>
+            <button class="rel-gerar-btn" onclick="gerarRelatorio()">📄 Gerar</button>
+          </div>
+        </div>
+
+        <!-- Filtro Mês -->
+        <div id="rel-filtro-mes" style="display:none;">
+          <div class="rel-filtro-row">
+            <div class="field">
+              <label>Mês / Ano</label>
+              <input type="month" id="rel-data-mes" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:11px 13px;color:var(--text);font-size:15px;font-family:var(--sans);outline:none;width:100%;">
+            </div>
+            <button class="rel-gerar-btn" onclick="gerarRelatorio()">📄 Gerar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="rel-resultado" id="rel-resultado">
+        <div class="rel-empty-state">
+          <div class="rel-empty-icon">📊</div>
+          <div class="rel-empty-msg">Selecione o período e clique em Gerar</div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- .screens-wrap -->
+
+  <!-- FAB Exportar (só aparece quando há relatório) -->
+  <button class="rel-export-fab" id="rel-export-fab" onclick="abrirExportModal()">
+    <span>⬆</span> Exportar
+  </button>
+
+  <!-- Modal de Exportação -->
+  <div class="export-overlay" id="export-overlay" onclick="fecharExportModal(event)">
+    <div class="export-modal" onclick="event.stopPropagation()">
+      <div class="export-modal-hdr">
+        <div class="export-modal-title">Exportar Relatório</div>
+        <div class="export-close" onclick="fecharExportModal()">✕</div>
+      </div>
+      <div class="export-options">
+        <div class="export-opt" onclick="exportarPDF()">
+          <div class="export-opt-icon">📄</div>
+          <div class="export-opt-info">
+            <div class="export-opt-lbl">Salvar como PDF</div>
+            <div class="export-opt-sub">Abre a janela de impressão · salve como PDF</div>
+          </div>
+          <div class="export-opt-arr">›</div>
+        </div>
+        <div class="export-opt" onclick="exportarCSV()">
+          <div class="export-opt-icon">📊</div>
+          <div class="export-opt-info">
+            <div class="export-opt-lbl">Exportar CSV</div>
+            <div class="export-opt-sub">Planilha com todas as medições do período</div>
+          </div>
+          <div class="export-opt-arr">›</div>
+        </div>
+        <div class="export-opt" onclick="exportarTexto()">
+          <div class="export-opt-icon">📋</div>
+          <div class="export-opt-info">
+            <div class="export-opt-lbl">Copiar resumo</div>
+            <div class="export-opt-sub">Texto formatado para colar no WhatsApp ou e-mail</div>
+          </div>
+          <div class="export-opt-arr">›</div>
+        </div>
+        <div class="export-opt" id="export-opt-share" onclick="exportarCompartilhar()" style="display:none;">
+          <div class="export-opt-icon">🔗</div>
+          <div class="export-opt-info">
+            <div class="export-opt-lbl">Compartilhar</div>
+            <div class="export-opt-sub">Compartilhe o resumo via apps do celular</div>
+          </div>
+          <div class="export-opt-arr">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Bottom Nav -->
   <div class="bottom-nav">
-    <button class="nav-btn active" id="nav-dash"      onclick="irPara('dash')">      <span class="nav-icon">🏠</span><span class="nav-lbl">Início</span>   </button>
-    <button class="nav-btn"        id="nav-lancar"    onclick="irPara('lancar')">    <span class="nav-icon">📊</span><span class="nav-lbl">Lançar</span>   </button>
-    <button class="nav-btn"        id="nav-historico" onclick="irPara('historico')"> <span class="nav-icon">📋</span><span class="nav-lbl">Histórico</span></button>
-    <button class="nav-btn"        id="nav-antenas"   onclick="irPara('antenas')">   <span class="nav-icon">📡</span><span class="nav-lbl">Antenas</span>  </button>
-    <button class="nav-btn"        id="nav-perfil"    onclick="irPara('perfil')">    <span class="nav-icon">👤</span><span class="nav-lbl">Perfil</span>   </button>
+    <button class="nav-btn active" id="nav-dash"       onclick="irPara('dash')">       <span class="nav-icon">🏠</span><span class="nav-lbl">Início</span>    </button>
+    <button class="nav-btn"        id="nav-lancar"     onclick="irPara('lancar')">     <span class="nav-icon">📊</span><span class="nav-lbl">Lançar</span>    </button>
+    <button class="nav-btn"        id="nav-historico"  onclick="irPara('historico')">  <span class="nav-icon">📋</span><span class="nav-lbl">Histórico</span> </button>
+    <button class="nav-btn"        id="nav-relatorios" onclick="irPara('relatorios')"> <span class="nav-icon">📄</span><span class="nav-lbl">Relatório</span> </button>
+    <button class="nav-btn"        id="nav-antenas"    onclick="irPara('antenas')">    <span class="nav-icon">📡</span><span class="nav-lbl">Antenas</span>   </button>
+    <button class="nav-btn"        id="nav-perfil"     onclick="irPara('perfil')">     <span class="nav-icon">👤</span><span class="nav-lbl">Perfil</span>    </button>
   </div>
 
 </div><!-- #view-app -->
@@ -445,7 +686,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div>
           <div style="font-size:12px;font-weight:600;">Teste automático de velocidade</div>
-          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;">Cloudflare CDN (São Paulo/Fortaleza) · download e upload reais</div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;">11 servidores Caruaru/PE · funciona completo no Vercel</div>
         </div>
         <div style="display:flex;gap:6px;">
           <button onclick="iniciarTeste('android')" id="btn-test-and" style="background:var(--ok-bg);border:1px solid var(--ok-b);border-radius:8px;padding:7px 12px;color:var(--ok);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);white-space:nowrap;">▶ Android</button>
@@ -724,16 +965,18 @@ async function recarregarTudo() {
 // ════════════ NAVEGAÇÃO ════════════
 function irPara(tela) {
   telaAtual = tela;
-  ['dash','lancar','historico','antenas','perfil'].forEach(t => {
+  ['dash','lancar','historico','antenas','perfil','relatorios'].forEach(t => {
     document.getElementById('scr-'+t).classList.toggle('active', t===tela);
     document.getElementById('nav-'+t).classList.toggle('active', t===tela);
     if (t===tela) document.getElementById('scr-'+t).scrollTop = 0;
   });
   if (tela === 'dash') renderDashboard();
+  if (tela === 'relatorios') iniciarTelaRelatorio();
+  if (tela !== 'relatorios') _setRelExportState(null);
   atualizarSub();
 }
 function atualizarSub() {
-  const m = {dash:'Dashboard', lancar:'Lançar medição', historico:'Histórico', antenas:'Gerenciar antenas', perfil:'Perfil & Config'};
+  const m = {dash:'Dashboard', lancar:'Lançar medição', historico:'Histórico', antenas:'Gerenciar antenas', perfil:'Perfil & Config', relatorios:'Relatórios'};
   document.getElementById('topbar-sub').textContent = m[telaAtual]||'';
 }
 
@@ -1332,33 +1575,29 @@ function avg(arr) {
 }
 
 // ════════════════════════════════════════════════════════════
-//  MOTOR DE TESTE DE VELOCIDADE v9
+//  MOTOR DE TESTE DE VELOCIDADE v8
 //
-//  HTTPS-SAFE — funciona no Vercel e em file://
+//  ESTRATÉGIA ADAPTATIVA POR ORIGEM:
 //
-//  Problema: servidores LibreSpeed locais usam http://
-//  Browsers bloqueiam http:// a partir de https:// (mixed content)
+//  file:// (aberto local)
+//    → Image() ping para detectar servidor online
+//    → fetch direto NÃO funciona (CORS null origin bloqueado)
+//    → Usa Cloudflare HTTPS como fallback com aviso
 //
-//  Solução: Cloudflare Speed API (100% HTTPS, CDN em SP/Fortaleza)
-//    ↓ Download: fetch de arquivos via https://speed.cloudflare.com
-//    ↑ Upload:   POST via https://speed.cloudflare.com/__up
-//               O Cloudflare aceita upload com CORS aberto em HTTPS
+//  http:// ou https:// (Vercel, Netlify, servidor local)
+//    → XHR/fetch funciona normalmente
+//    → Testa os 11 servidores PE via ping XHR
+//    → Download + Upload direto no servidor mais rápido
+//    → Sem iframe, sem limitações
 //
-//  O endpoint /__up do Cloudflare NÃO exige preflight extra quando
-//  chamado de uma página HTTPS com origem real (Vercel) — diferente
-//  de file:// onde o upload ainda pode falhar.
-//
-//  Servidores PE (http://) continuam listados para uso futuro
-//  quando os provedores adicionarem SSL nos servidores.
+//  RESUMO: Para teste completo, hospede no Vercel (gratuito).
+//          Em file:// só Cloudflare download funciona.
 // ════════════════════════════════════════════════════════════
 
 let testeAtivo     = false;
 let tipoTesteAtual = null;
+let servidorUsado  = '';
 
-// Cloudflare Speed — HTTPS, CDN em São Paulo e Fortaleza
-const CF = 'https://speed.cloudflare.com';
-
-// Servidores PE guardados para quando tiverem HTTPS
 const SERVIDORES_PE = [
   { id:'24305', host:'ookla.provedorsmart.com.br:8080',         nome:'Smart Fibra'          },
   { id:'59566', host:'teste.fernandesinfornet.com.br:8080',     nome:'INFORNETFIBRA'        },
@@ -1373,6 +1612,12 @@ const SERVIDORES_PE = [
   { id:'71746', host:'speedtest01.gplustelecom.com.br:8080',    nome:'GPLUS Telecom'        },
 ];
 
+const CF_BASE   = 'https://speed.cloudflare.com';
+// true quando hospedado num servidor real (Vercel, Netlify, http://)
+const _hosted   = window.location.protocol !== 'file:';
+const _isHttps  = window.location.protocol === 'https:';
+
+// ── ENTRADA PRINCIPAL ────────────────────────────────────────
 async function iniciarTeste(tipo) {
   if (testeAtivo) return;
   testeAtivo     = true;
@@ -1401,90 +1646,20 @@ async function iniciarTeste(tipo) {
   });
 
   try {
-    // ── DOWNLOAD via Cloudflare ──────────────────────────
-    setFase('↓ Medindo download (Cloudflare CDN)...');
-    setBar(5, 'var(--info)');
-
-    // Aquecimento TCP — descarta resultado
-    try { await _fetchDL(`${CF}/__down?bytes=1000000`, 6000); } catch(e) {}
-
-    const dlAmostras = [];
-    const dlSizes    = [10, 25, 50, 100]; // MB
-
-    for (let i = 0; i < dlSizes.length; i++) {
-      setBar(Math.round(8 + (i / dlSizes.length) * 42), 'var(--info)');
-      setFase(`↓ Download ${dlSizes[i]}MB...`);
-      try {
-        const mbps = await _fetchDL(
-          `${CF}/__down?bytes=${dlSizes[i] * 1_000_000}&t=${Date.now()}`, 25000
-        );
-        if (mbps > 0.5) {
-          dlAmostras.push(mbps);
-          const med = mediana(dlAmostras);
-          document.getElementById('test-speed-live').textContent = Math.round(med) + ' Mbps ↓';
-          document.getElementById('live-dl').textContent = Math.round(med);
-          document.getElementById('live-dl').style.color = stCor(Math.round(med));
-        }
-      } catch(e) { /* continua */ }
+    if (_hosted) {
+      // ════ MODO HOSPEDADO (Vercel/Netlify/http) ════
+      // CORS funciona — usa servidores PE diretamente
+      await testeHostedMode(tipo, idDL, idUL, idxDL, idxUL);
+    } else {
+      // ════ MODO ARQUIVO LOCAL (file://) ════
+      // CORS bloqueado — avisa e usa Cloudflare
+      await testeFileMode(tipo, idDL, idUL, idxDL, idxUL);
     }
-
-    if (!dlAmostras.length) throw new Error('Download falhou. Verifique sua conexão.');
-    const dlRound = Math.max(1, Math.round(mediana(dlAmostras)));
-    setBar(55, 'var(--info)');
-
-    // ── UPLOAD via Cloudflare ────────────────────────────
-    setFase('↑ Medindo upload (Cloudflare CDN)...');
-
-    const ulAmostras = [];
-    const ulSizes    = [5, 10, 20]; // MB — upload é mais lento
-
-    for (let i = 0; i < ulSizes.length; i++) {
-      setBar(Math.round(57 + (i / ulSizes.length) * 40), 'var(--info)');
-      setFase(`↑ Upload ${ulSizes[i]}MB...`);
-      try {
-        const mbps = await _xhrUL(
-          `${CF}/__up?t=${Date.now()}`, ulSizes[i] * 1_000_000
-        );
-        if (mbps > 0.5) {
-          ulAmostras.push(mbps);
-          const med = mediana(ulAmostras);
-          document.getElementById('test-speed-live').textContent = Math.round(med) + ' Mbps ↑';
-          document.getElementById('live-ul').textContent = Math.round(med);
-          document.getElementById('live-ul').style.color = stCor(Math.round(med));
-        }
-      } catch(e) { /* continua */ }
-    }
-
-    // Se upload falhou (file:// ou restrição), estima
-    const uploadReal = ulAmostras.length > 0;
-    const ulRound    = uploadReal
-      ? Math.max(1, Math.round(mediana(ulAmostras)))
-      : Math.max(1, Math.round(dlRound * 1.25));
-
-    document.getElementById('live-dl').textContent = dlRound;
-    document.getElementById('live-dl').style.color = stCor(dlRound);
-    document.getElementById('live-ul').textContent = ulRound;
-    document.getElementById('live-ul').style.color = stCor(ulRound);
-    setBar(100, 'var(--ok)');
-
-    preencherCampo(idDL, dlRound, idxDL);
-    preencherCampo(idUL, ulRound, idxUL);
-
-    const plat = tipo === 'android' ? 'Android' : 'iOS';
-    const ok   = dlRound >= META && ulRound >= META;
-    mostrarResultadoFinal(
-      ok ? '✓' : '⚠',
-      `${plat}: ↓${dlRound} · ↑${ulRound} Mbps — Cloudflare CDN`,
-      ok, !uploadReal
-    );
-    setFase('Concluído ✓');
-    toast('✓ Campos preenchidos automaticamente!', 'ok');
-
   } catch(err) {
     setFase('Erro: ' + err.message);
     setBar(0, 'var(--bad)');
-    mostrarResultadoFinal('✕', err.message + ' — preencha manualmente.', false, false);
-    toast('Erro: ' + err.message, 'err');
+    mostrarResultadoFinal('✕', err.message, false, false);
+    toast('Erro no teste: ' + err.message, 'err');
   } finally {
     testeAtivo = false;
     btnAnd.disabled = btnIos.disabled = false;
@@ -1492,95 +1667,1153 @@ async function iniciarTeste(tipo) {
   }
 }
 
-// ── FETCH DOWNLOAD (HTTPS) ───────────────────────────────────
-function _fetchDL(url, ms) {
-  return new Promise((resolve, reject) => {
-    const ctrl  = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), ms);
-    const t0    = performance.now();
-    fetch(url, { signal: ctrl.signal, cache: 'no-store' })
-      .then(r => r.blob())
-      .then(b => {
-        clearTimeout(timer);
-        const dt = Math.max(0.05, (performance.now() - t0) / 1000);
-        resolve((b.size * 8) / dt / 1_000_000);
-      })
-      .catch(e => { clearTimeout(timer); reject(e); });
+// ── MODO HOSPEDADO — Vercel / Netlify / servidor http ────────
+async function testeHostedMode(tipo, idDL, idUL, idxDL, idxUL) {
+  setFase('🔍 Localizando melhor servidor em Caruaru/PE...');
+  setBar(5, 'var(--info)');
+
+  const servidor = await encontrarServidorXHR();
+
+  if (!servidor) {
+    // Todos os 11 falharam → Cloudflare
+    setFase('⚠ Servidores PE offline — usando Cloudflare CDN');
+    await testeCloudflare(tipo, idDL, idUL, idxDL, idxUL, true);
+    return;
+  }
+
+  servidorUsado = servidor.nome;
+  setFase(`📡 ${servidor.nome} (${servidor.ping}ms) — medindo...`);
+  setBar(10, 'var(--info)');
+
+  // Download
+  const dlMbps  = await medirDownloadLS(servidor);
+  const dlRound = Math.max(1, Math.round(dlMbps));
+  document.getElementById('live-dl').textContent = dlRound;
+  document.getElementById('live-dl').style.color = stCor(dlRound);
+  setBar(55, 'var(--info)');
+
+  // Upload
+  const ulMbps  = await medirUploadLS(servidor);
+  const ulRound = Math.max(1, Math.round(ulMbps));
+  document.getElementById('live-ul').textContent = ulRound;
+  document.getElementById('live-ul').style.color = stCor(ulRound);
+  setBar(100, 'var(--ok)');
+
+  preencherCampo(idDL, dlRound, idxDL);
+  preencherCampo(idUL, ulRound, idxUL);
+
+  const plat = tipo === 'android' ? 'Android' : 'iOS';
+  mostrarResultadoFinal(
+    (dlRound >= META && ulRound >= META) ? '✓' : '⚠',
+    `${plat}: ↓${dlRound} · ↑${ulRound} Mbps — ${servidor.nome}`,
+    dlRound >= META && ulRound >= META, false
+  );
+  setFase('Concluído ✓');
+  toast('✓ Campos preenchidos automaticamente!', 'ok');
+}
+
+// ── MODO ARQUIVO LOCAL — file:// ─────────────────────────────
+async function testeFileMode(tipo, idDL, idUL, idxDL, idxUL) {
+  // Mostra aviso sobre limitação do file://
+  setFase('ℹ️ Arquivo local detectado — usando Cloudflare CDN');
+  mostrarAvisoFileLocal();
+  await sleep(800);
+  await testeCloudflare(tipo, idDL, idUL, idxDL, idxUL, true);
+}
+
+function mostrarAvisoFileLocal() {
+  const el = document.getElementById('test-result-final');
+  if (!el) return;
+  el.style.display = 'flex';
+  document.getElementById('test-result-icon').textContent = 'ℹ️';
+  document.getElementById('test-result-txt').style.color  = 'var(--info)';
+  document.getElementById('test-result-txt').innerHTML    =
+    'App aberto como arquivo local.<br>' +
+    '<span style="font-size:10px;font-family:var(--mono);color:var(--warn);">' +
+    '⚡ Para teste completo com servidores de Caruaru/PE, ' +
+    'hospede no <strong>Vercel</strong> (gratuito) — o upload também funcionará.' +
+    '</span>';
+}
+
+// ── TESTE CLOUDFLARE ─────────────────────────────────────────
+async function testeCloudflare(tipo, idDL, idUL, idxDL, idxUL, uploadEstimado) {
+  const dlMbps  = await medirDownloadCF();
+  const dlRound = Math.max(1, Math.round(dlMbps));
+  const ulRound = Math.max(1, Math.round(dlRound * 1.25));
+
+  document.getElementById('live-dl').textContent = dlRound;
+  document.getElementById('live-dl').style.color = stCor(dlRound);
+  document.getElementById('live-ul').textContent = ulRound;
+  document.getElementById('live-ul').style.color = stCor(ulRound);
+  setBar(100, 'var(--ok)');
+
+  preencherCampo(idDL, dlRound, idxDL);
+  preencherCampo(idUL, ulRound, idxUL);
+
+  const plat = tipo === 'android' ? 'Android' : 'iOS';
+  mostrarResultadoFinal(
+    (dlRound >= META && ulRound >= META) ? '✓' : '⚠',
+    `${plat}: ↓${dlRound} · ↑${ulRound} Mbps — Cloudflare CDN`,
+    dlRound >= META && ulRound >= META, uploadEstimado
+  );
+  setFase('Concluído (Cloudflare)');
+  toast('✓ Teste concluído!', 'ok');
+}
+
+// ── PING VIA XHR (funciona em http:// e https://) ────────────
+function encontrarServidorXHR() {
+  return new Promise(resolve => {
+    let count = 0, melhor = null, menorPing = Infinity;
+    const total = SERVIDORES_PE.length;
+
+    const checar = () => { if (++count === total) resolve(melhor); };
+
+    SERVIDORES_PE.forEach(servidor => {
+      const url = `http://${servidor.host}/backend/empty.php?t=${Date.now()}`;
+      const xhr = new XMLHttpRequest();
+      const t0  = performance.now();
+      let   done = false;
+
+      const timer = setTimeout(() => {
+        if (!done) { done=true; xhr.abort(); checar(); }
+      }, 3000);
+
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState >= 2 && !done) {
+          done = true; clearTimeout(timer);
+          const ping = Math.round(performance.now() - t0);
+          if (ping < menorPing) { menorPing = ping; melhor = { ...servidor, ping }; }
+          checar();
+        }
+      };
+      xhr.onerror = xhr.onabort = () => {
+        if (!done) { done=true; clearTimeout(timer); checar(); }
+      };
+      try { xhr.open('GET', url, true); xhr.send(); }
+      catch(e) { if (!done) { done=true; clearTimeout(timer); checar(); } }
+    });
+
+    setTimeout(() => resolve(melhor), 4000);
   });
 }
 
-// ── XHR UPLOAD — funciona em HTTPS com origem real (Vercel) ──
-function _xhrUL(url, bytes) {
+// ── DOWNLOAD LibreSpeed ──────────────────────────────────────
+async function medirDownloadLS(servidor) {
+  const base = `http://${servidor.host}/backend/garbage.php`;
+  // Aquecimento
+  try { await _xhrDL(`${base}?ckSize=2&t=${Date.now()}`, 6000); } catch(e) {}
+
+  const amostras = [];
+  const sizes    = [10, 25, 50, 100];
+  for (let i = 0; i < sizes.length; i++) {
+    setBar(Math.round(12 + (i / sizes.length) * 40), 'var(--info)');
+    setFase(`↓ Download ${sizes[i]}MB — ${servidor.nome}...`);
+    try {
+      const mbps = await _xhrDL(`${base}?ckSize=${sizes[i]}&t=${Date.now()}`, 25000);
+      if (mbps > 0.5) {
+        amostras.push(mbps);
+        const med = mediana(amostras);
+        document.getElementById('test-speed-live').textContent = Math.round(med) + ' Mbps ↓';
+        document.getElementById('live-dl').textContent = Math.round(med);
+        document.getElementById('live-dl').style.color = stCor(Math.round(med));
+      }
+    } catch(e) {}
+  }
+  if (!amostras.length) throw new Error(`Download falhou — ${servidor.nome}`);
+  return mediana(amostras);
+}
+
+// ── UPLOAD LibreSpeed ────────────────────────────────────────
+async function medirUploadLS(servidor) {
+  const url = `http://${servidor.host}/backend/empty.php`;
+  const amostras = [];
+  const configs  = [{ mb:5, l:'5MB' }, { mb:20, l:'20MB' }, { mb:40, l:'40MB' }];
+
+  for (let i = 0; i < configs.length; i++) {
+    setBar(Math.round(57 + (i / configs.length) * 40), 'var(--info)');
+    setFase(`↑ Upload ${configs[i].l} — ${servidor.nome}...`);
+    try {
+      const mbps = await _xhrUL(`${url}?t=${Date.now()}`, configs[i].mb * 1_000_000);
+      if (mbps > 0.5) {
+        amostras.push(mbps);
+        const med = mediana(amostras);
+        document.getElementById('test-speed-live').textContent = Math.round(med) + ' Mbps ↑';
+        document.getElementById('live-ul').textContent = Math.round(med);
+        document.getElementById('live-ul').style.color = stCor(Math.round(med));
+      }
+    } catch(e) {}
+  }
+  if (!amostras.length) {
+    const dl = parseFloat(document.getElementById('live-dl').textContent) || 100;
+    return Math.round(dl * 1.25);
+  }
+  return mediana(amostras);
+}
+
+// ── XHR DOWNLOAD com onprogress ──────────────────────────────
+function _xhrDL(url, ms) {
   return new Promise((resolve, reject) => {
-    const buf = new Uint8Array(bytes);
-    for (let i = 0; i < bytes; i += 4096) buf[i] = (Math.random() * 256) | 0;
-    const blob = new Blob([buf], { type: 'application/octet-stream' });
-
-    const xhr      = new XMLHttpRequest();
-    const t0       = performance.now();
+    const xhr = new XMLHttpRequest();
+    const t0  = performance.now();
+    let done=false, bytesAnt=0, tAnt=t0;
     const amostras = [];
-    let   bytesAnt = 0, tAnt = t0, done = false;
 
-    xhr.upload.onprogress = (e) => {
-      const tNow = performance.now();
-      const dt   = (tNow - tAnt) / 1000;
-      const diff = e.loaded - bytesAnt;
-      if ((diff >= 500_000 || dt >= 0.3) && dt > 0.05 && diff > 0) {
-        amostras.push((diff * 8) / dt / 1_000_000);
-        bytesAnt = e.loaded;
-        tAnt     = tNow;
+    const timer = setTimeout(() => {
+      if (!done) { done=true; xhr.abort(); }
+    }, ms);
+
+    xhr.onprogress = (e) => {
+      const tNow=performance.now(), dt=(tNow-tAnt)/1000, bytes=e.loaded-bytesAnt;
+      if ((bytes>=500_000||dt>=0.4) && dt>0.05) {
+        amostras.push((bytes*8)/dt/1_000_000);
+        bytesAnt=e.loaded; tAnt=tNow;
       }
     };
-    xhr.onload = () => {
-      if (done) return; done = true;
-      const dtT = Math.max(0.1, (performance.now() - t0) / 1000);
-      resolve(amostras.length >= 2 ? mediana(amostras) : (bytes * 8) / dtT / 1_000_000);
+    xhr.onload = (e) => {
+      if(done)return; done=true; clearTimeout(timer);
+      if(amostras.length>=2){resolve(mediana(amostras));return;}
+      const dt=Math.max(0.1,(performance.now()-t0)/1000);
+      const bytes=e.loaded||0;
+      if(bytes===0&&!amostras.length){reject(new Error('vazio'));return;}
+      resolve(amostras.length?mediana(amostras):(bytes*8)/dt/1_000_000);
     };
-    xhr.onerror   = () => { if (!done) { done=true; reject(new Error('erro upload')); }};
-    xhr.ontimeout = () => { if (!done) { done=true; reject(new Error('timeout upload')); }};
-    xhr.timeout   = 45000;
-    xhr.open('POST', url, true);
-    xhr.send(blob);
+    xhr.onabort = () => {
+      if(done)return; done=true; clearTimeout(timer);
+      if(amostras.length>0){resolve(mediana(amostras));}
+      else reject(new Error('abortado'));
+    };
+    xhr.onerror = () => { if(!done){done=true;clearTimeout(timer);reject(new Error('erro rede'));} };
+    try { xhr.open('GET',url,true); xhr.send(); }
+    catch(e){ if(!done){done=true;clearTimeout(timer);reject(e);} }
+  });
+}
+
+// ── XHR UPLOAD com progress events ──────────────────────────
+function _xhrUL(url, bytes) {
+  return new Promise((resolve, reject) => {
+    const buf=new Uint8Array(bytes);
+    for(let i=0;i<bytes;i+=4096) buf[i]=(Math.random()*256)|0;
+    const blob=new Blob([buf],{type:'application/octet-stream'});
+    const xhr=new XMLHttpRequest();
+    const t0=performance.now();
+    const amostras=[]; let bytesAnt=0,tAnt=t0,done=false;
+
+    xhr.upload.onprogress=(e)=>{
+      const tNow=performance.now(),dt=(tNow-tAnt)/1000,diff=e.loaded-bytesAnt;
+      if(diff>=500_000||dt>=0.3){
+        if(dt>0.05&&diff>0) amostras.push((diff*8)/dt/1_000_000);
+        bytesAnt=e.loaded; tAnt=tNow;
+      }
+    };
+    xhr.onload=()=>{
+      if(done)return; done=true;
+      const dtT=Math.max(0.1,(performance.now()-t0)/1000);
+      resolve(amostras.length>=2?mediana(amostras):(bytes*8)/dtT/1_000_000);
+    };
+    xhr.onerror=()=>{if(!done){done=true;reject(new Error('erro upload'));}};
+    xhr.ontimeout=()=>{if(!done){done=true;reject(new Error('timeout upload'));}};
+    xhr.timeout=45000;
+    xhr.open('POST',url,true); xhr.send(blob);
+  });
+}
+
+// ── DOWNLOAD CLOUDFLARE (fetch HTTPS) ───────────────────────
+async function medirDownloadCF() {
+  try { await _fetchDL(`${CF_BASE}/__down?bytes=2000000&t=${Date.now()}`,8000); } catch(e){}
+  const amostras=[], sizes=[10,25,50,100];
+  for(let i=0;i<sizes.length;i++){
+    setBar(Math.round(10+(i/sizes.length)*60),'var(--info)');
+    setFase(`↓ Download ${sizes[i]}MB (Cloudflare)...`);
+    try{
+      const mbps=await _fetchDL(`${CF_BASE}/__down?bytes=${sizes[i]*1_000_000}&t=${Date.now()}`,25000);
+      if(mbps>0.5){
+        amostras.push(mbps);
+        const med=mediana(amostras);
+        document.getElementById('live-dl').textContent=Math.round(med);
+        document.getElementById('live-dl').style.color=stCor(Math.round(med));
+        document.getElementById('test-speed-live').textContent=Math.round(med)+' Mbps ↓';
+      }
+    }catch(e){}
+  }
+  if(!amostras.length) throw new Error('Cloudflare falhou. Verifique sua conexão.');
+  return mediana(amostras);
+}
+
+function _fetchDL(url, ms) {
+  return new Promise((resolve,reject)=>{
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),ms);
+    const t0=performance.now();
+    fetch(url,{signal:ctrl.signal,cache:'no-store'})
+      .then(r=>r.blob())
+      .then(b=>{clearTimeout(timer);const dt=Math.max(0.05,(performance.now()-t0)/1000);resolve((b.size*8)/dt/1_000_000);})
+      .catch(e=>{clearTimeout(timer);reject(e);});
   });
 }
 
 // ── HELPERS ──────────────────────────────────────────────────
-function mediana(arr) {
-  if (!arr.length) return 0;
-  const s = [...arr].sort((a, b) => a - b);
-  const m = Math.floor(s.length / 2);
-  return s.length % 2 ? s[m] : (s[m-1] + s[m]) / 2;
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function mediana(arr){
+  if(!arr.length)return 0;
+  const s=[...arr].sort((a,b)=>a-b);
+  const m=Math.floor(s.length/2);
+  return s.length%2?s[m]:(s[m-1]+s[m])/2;
 }
-function preencherCampo(id, valor, idx) {
-  const el = document.getElementById(id);
-  el.value = valor;
-  corInput(el, idx);
-  el.style.transition = 'box-shadow 0.4s';
-  el.style.boxShadow  = '0 0 0 3px rgba(34,201,135,0.4)';
-  setTimeout(() => el.style.boxShadow = '', 1500);
+function preencherCampo(id,valor,idx){
+  const el=document.getElementById(id);
+  el.value=valor; corInput(el,idx);
+  el.style.transition='box-shadow 0.4s';
+  el.style.boxShadow='0 0 0 3px rgba(34,201,135,0.4)';
+  setTimeout(()=>el.style.boxShadow='',1500);
 }
-function setFase(txt) { const el=document.getElementById('test-fase'); if(el) el.textContent=txt; }
-function setBar(pct, cor) {
-  const b=document.getElementById('test-bar'); if(!b) return;
-  b.style.width=Math.min(100,pct)+'%'; b.style.background=cor;
-}
-function mostrarResultadoFinal(icon, txt, ok, uploadEstimado) {
-  const el=document.getElementById('test-result-final'); if(!el) return;
+function setFase(txt){const el=document.getElementById('test-fase');if(el)el.textContent=txt;}
+function setBar(pct,cor){const b=document.getElementById('test-bar');if(!b)return;b.style.width=Math.min(100,pct)+'%';b.style.background=cor;}
+function mostrarResultadoFinal(icon,txt,ok,uploadEstimado){
+  const el=document.getElementById('test-result-final');if(!el)return;
   el.style.display='flex';
   document.getElementById('test-result-icon').textContent=icon;
   document.getElementById('test-result-txt').style.color=ok?'var(--ok)':'var(--warn)';
-  if (uploadEstimado) {
-    document.getElementById('test-result-txt').innerHTML=
-      txt+'<br><span style="font-size:10px;color:var(--warn);font-family:var(--mono);">'+
-      '⚠ Upload estimado ×1.25 — edite o campo se souber o valor real</span>';
-  } else {
+  if(uploadEstimado){
+    document.getElementById('test-result-txt').innerHTML=txt+'<br><span style="font-size:10px;color:var(--warn);font-family:var(--mono);">⚠ Upload estimado ×1.25 — edite se souber o valor real</span>';
+  }else{
     document.getElementById('test-result-txt').textContent=txt;
   }
 }
-function repetirTeste() { if (tipoTesteAtual) iniciarTeste(tipoTesteAtual); }
+function repetirTeste(){if(tipoTesteAtual)iniciarTeste(tipoTesteAtual);}
 
-// Reset ao abrir modal
-const _origAbrirLanc=abrirLanc;
+
+// ════════════ RELATÓRIOS ════════════
+let tipoRelatorio = 'dia';
+let _chartDonut = null, _chartBarDia = null, _chartLineMes = null, _chartBarMes = null;
+
+function iniciarTelaRelatorio() {
+  const h = hoje();
+  const inputDia = document.getElementById('rel-data-dia');
+  const inputMes = document.getElementById('rel-data-mes');
+  if (!inputDia.value) inputDia.value = h;
+  if (!inputMes.value) inputMes.value = h.substring(0, 7);
+}
+
+function selecionarTipoRel(tipo) {
+  tipoRelatorio = tipo;
+  document.getElementById('rel-btn-dia').classList.toggle('active', tipo === 'dia');
+  document.getElementById('rel-btn-mes').classList.toggle('active', tipo === 'mes');
+  document.getElementById('rel-filtro-dia').style.display = tipo === 'dia' ? 'block' : 'none';
+  document.getElementById('rel-filtro-mes').style.display = tipo === 'mes' ? 'block' : 'none';
+  document.getElementById('rel-resultado').innerHTML = `
+    <div class="rel-empty-state">
+      <div class="rel-empty-icon">📊</div>
+      <div class="rel-empty-msg">Selecione o período e clique em Gerar</div>
+    </div>`;
+  _destroyCharts();
+}
+
+function _destroyCharts() {
+  [_chartDonut, _chartBarDia, _chartLineMes, _chartBarMes].forEach(c => { try { c && c.destroy(); } catch(e){} });
+  _chartDonut = _chartBarDia = _chartLineMes = _chartBarMes = null;
+}
+
+function gerarRelatorio() {
+  _destroyCharts();
+  if (tipoRelatorio === 'dia') gerarRelatorioDia();
+  else gerarRelatorioMes();
+}
+
+// ─── helpers de cálculo ───────────────────────────────────────────
+function _valsAntena(med) {
+  return [med.dl_android, med.ul_android, med.dl_ios, med.ul_ios].filter(v => v != null && v !== '' && !isNaN(Number(v))).map(Number);
+}
+function _mediaAntena(med) {
+  const v = _valsAntena(med); return v.length ? Math.round(v.reduce((s,x)=>s+x,0)/v.length) : null;
+}
+function _minAntena(med) {
+  const v = _valsAntena(med); return v.length ? Math.min(...v) : null;
+}
+function _statusAntena(minV) {
+  if (minV === null) return 'sem-med';
+  if (minV >= META)   return 'ok';
+  if (minV >= ALERTA) return 'atencao';
+  return 'alerta';
+}
+function _statusStyle(st) {
+  const m = {
+    ok:      'background:var(--ok-bg);color:var(--ok)',
+    atencao: 'background:var(--warn-bg);color:var(--warn)',
+    alerta:  'background:var(--bad-bg);color:var(--bad)',
+    isento:  'background:var(--purple-bg);color:var(--purple)',
+    'sem-med':'background:var(--bg4);color:var(--text3)',
+  };
+  return m[st] || m['sem-med'];
+}
+function _statusTxt(st) {
+  return {ok:'✓ OK', atencao:'⚠ Atenção', alerta:'✕ Alerta', isento:'🔧 Isenta', 'sem-med':'Sem medição'}[st] || '—';
+}
+
+// ─── RELATÓRIO DIA ─────────────────────────────────────────────────
+function gerarRelatorioDia() {
+  const data = document.getElementById('rel-data-dia').value;
+  if (!data) { toast('Selecione uma data', 'err'); return; }
+
+  const [y,m,d] = data.split('-');
+  const dataFmt = `${d}/${m}/${y}`;
+  const diasSemana = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const diaSemana  = diasSemana[new Date(data + 'T12:00:00').getDay()];
+
+  const medDia       = medicoes.filter(med => med.data === data);
+  const antenasAtivasAll = antenas.filter(a => a.isenta !== 'SIM');
+  const comMedicao   = antenasAtivasAll.filter(a => medDia.find(m => String(m.antena_id) === String(a.id)));
+  const semMedicao   = antenasAtivasAll.filter(a => !medDia.find(m => String(m.antena_id) === String(a.id)));
+  const isentas      = antenas.filter(a => a.isenta === 'SIM' && medDia.find(m => String(m.antena_id) === String(a.id)));
+
+  let totalOk=0, totalAtencao=0, totalAlerta=0;
+  let somaMedia=0, contMedia=0, piorNome='—', piorVal=Infinity, melhorNome='—', melhorVal=0;
+  let somaUL=0, contUL=0;
+
+  comMedicao.forEach(a => {
+    const med  = medDia.find(m => String(m.antena_id) === String(a.id));
+    const minV = _minAntena(med);
+    const avgV = _mediaAntena(med);
+    if (minV === null) return;
+    if (minV >= META)   totalOk++;
+    else if (minV >= ALERTA) totalAtencao++;
+    else totalAlerta++;
+    if (avgV !== null) { somaMedia += avgV; contMedia++; }
+    if (minV < piorVal)   { piorVal  = minV;  piorNome  = a.nome; }
+    if (minV > melhorVal) { melhorVal = minV; melhorNome = a.nome; }
+    const ul = [med.ul_android, med.ul_ios].filter(v => v != null && v !== '' && !isNaN(v)).map(Number);
+    if (ul.length) { somaUL += ul.reduce((s,x)=>s+x,0)/ul.length; contUL++; }
+  });
+
+  const cobertura   = antenasAtivasAll.length > 0 ? Math.round((comMedicao.length / antenasAtivasAll.length) * 100) : 0;
+  const mediaGeral  = contMedia > 0 ? Math.round(somaMedia / contMedia) : 0;
+  const mediaUL     = contUL > 0 ? Math.round(somaUL / contUL) : 0;
+  const taxaOk      = comMedicao.length > 0 ? Math.round((totalOk / comMedicao.length) * 100) : 0;
+  const cobCor      = cobertura >= 80 ? 'var(--ok)' : cobertura >= 50 ? 'var(--warn)' : 'var(--bad)';
+  const taxaCor     = taxaOk >= 80 ? 'var(--ok)' : taxaOk >= 50 ? 'var(--warn)' : 'var(--bad)';
+
+  // ranking top piores
+  const rankPiores = comMedicao
+    .map(a => { const med = medDia.find(m => String(m.antena_id) === String(a.id)); return { nome: a.nome, min: _minAntena(med)||0, avg: _mediaAntena(med)||0 }; })
+    .filter(x => x.min < META)
+    .sort((a,b) => a.min - b.min)
+    .slice(0, 6);
+
+  document.getElementById('rel-resultado').innerHTML = `
+    <div style="margin-bottom:14px;">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:2px;">📅 ${dataFmt} — ${diaSemana}</div>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">${comMedicao.length} de ${antenasAtivasAll.length} antenas ativas medidas</div>
+    </div>
+
+    <!-- KPIs linha 1: 2 grandes -->
+    <div class="rel-kpi-grid-2">
+      <div class="rel-kpi-card kpi-blue">
+        <div class="rel-kpi-icon">📡</div>
+        <div class="rel-kpi-val" style="color:${cobCor}">${cobertura}%</div>
+        <div class="rel-kpi-lbl">Cobertura</div>
+        <div class="rel-kpi-sub" style="color:var(--text3)">${comMedicao.length} / ${antenasAtivasAll.length} antenas</div>
+      </div>
+      <div class="rel-kpi-card kpi-green">
+        <div class="rel-kpi-icon">✅</div>
+        <div class="rel-kpi-val" style="color:${taxaCor}">${taxaOk}%</div>
+        <div class="rel-kpi-lbl">Taxa de conformidade</div>
+        <div class="rel-kpi-sub" style="color:var(--text3)">${totalOk} OK de ${comMedicao.length}</div>
+      </div>
+    </div>
+
+    <!-- KPIs linha 2: 4 menores -->
+    <div class="rel-kpi-grid-4">
+      <div class="rel-kpi-card kpi-blue">
+        <div class="rel-kpi-val" style="color:var(--info)">${mediaGeral}</div>
+        <div class="rel-kpi-lbl">Mbps Média DL</div>
+      </div>
+      <div class="rel-kpi-card kpi-purple">
+        <div class="rel-kpi-val" style="color:var(--purple)">${mediaUL}</div>
+        <div class="rel-kpi-lbl">Mbps Média UL</div>
+      </div>
+      <div class="rel-kpi-card kpi-red">
+        <div class="rel-kpi-val" style="color:var(--bad)">${totalAlerta}</div>
+        <div class="rel-kpi-lbl">Em alerta</div>
+      </div>
+      <div class="rel-kpi-card kpi-yellow">
+        <div class="rel-kpi-val" style="color:var(--warn)">${semMedicao.length}</div>
+        <div class="rel-kpi-lbl">Sem medição</div>
+      </div>
+    </div>
+
+    <!-- Gráfico donut + legenda -->
+    <div class="rel-chart-card">
+      <div class="rel-chart-title">🥧 Distribuição de status</div>
+      <div class="rel-donut-wrap">
+        <div class="rel-donut-canvas"><canvas id="chart-donut-dia" width="130" height="130"></canvas></div>
+        <div class="rel-donut-legend">
+          <div class="rel-legend-item">
+            <div class="rel-legend-dot" style="background:#22c987"></div>
+            <div class="rel-legend-lbl">OK</div>
+            <div class="rel-legend-val" style="color:var(--ok)">${totalOk}</div>
+          </div>
+          <div class="rel-legend-item">
+            <div class="rel-legend-dot" style="background:#f5a623"></div>
+            <div class="rel-legend-lbl">Atenção</div>
+            <div class="rel-legend-val" style="color:var(--warn)">${totalAtencao}</div>
+          </div>
+          <div class="rel-legend-item">
+            <div class="rel-legend-dot" style="background:#f05252"></div>
+            <div class="rel-legend-lbl">Alerta</div>
+            <div class="rel-legend-val" style="color:var(--bad)">${totalAlerta}</div>
+          </div>
+          <div class="rel-legend-item">
+            <div class="rel-legend-dot" style="background:#555b68"></div>
+            <div class="rel-legend-lbl">Sem medição</div>
+            <div class="rel-legend-val" style="color:var(--text3)">${semMedicao.length}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico barras horizontais: ranking antenas abaixo da meta -->
+    ${rankPiores.length ? `
+    <div class="rel-chart-card">
+      <div class="rel-chart-title">⚠️ Antenas abaixo da meta (${META} Mbps)</div>
+      <div id="rel-rank-piores" class="rel-rank-list"></div>
+    </div>` : `
+    <div class="rel-chart-card" style="text-align:center;padding:20px;">
+      <div style="font-size:24px;margin-bottom:6px;">🎉</div>
+      <div style="font-size:13px;font-weight:600;color:var(--ok)">Todas as antenas medidas estão OK!</div>
+    </div>`}
+
+    <!-- Gráfico barras download geral -->
+    <div class="rel-chart-card">
+      <div class="rel-chart-title">📶 Download por antena (Mbps)</div>
+      <div class="rel-chart-wrap" style="height:${Math.max(120, comMedicao.length * 26)}px;">
+        <canvas id="chart-bar-dia"></canvas>
+      </div>
+    </div>
+
+    <!-- Detalhes por antena -->
+    <div class="rel-section-lbl">📋 Detalhes por antena</div>
+    <div id="rel-antenas-detalhe"></div>
+  `;
+
+  // ── renderiza ranking piores
+  if (rankPiores.length) {
+    const maxPior = Math.max(...rankPiores.map(x => x.avg), 1);
+    document.getElementById('rel-rank-piores').innerHTML = rankPiores.map((x, i) => {
+      const cor = x.min < ALERTA ? 'var(--bad)' : 'var(--warn)';
+      const pct  = Math.round((x.avg / META) * 100);
+      return `<div class="rel-rank-item">
+        <div class="rel-rank-num">${i+1}</div>
+        <div class="rel-rank-name" title="${x.nome}">${x.nome}</div>
+        <div class="rel-rank-bar-bg">
+          <div class="rel-rank-bar-fill" style="width:${pct}%;background:${cor}"></div>
+        </div>
+        <div class="rel-rank-val" style="color:${cor}">${x.avg}M</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Chart donut
+  setTimeout(() => {
+    const ctxD = document.getElementById('chart-donut-dia');
+    if (ctxD) {
+      _chartDonut = new Chart(ctxD, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [totalOk, totalAtencao, totalAlerta, semMedicao.length],
+            backgroundColor: ['#22c987','#f5a623','#f05252','#333a45'],
+            borderWidth: 0,
+            hoverOffset: 4,
+          }]
+        },
+        options: {
+          cutout: '68%',
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          animation: { duration: 700 },
+        }
+      });
+    }
+
+    // ── Chart barra horizontal download
+    const ctxB = document.getElementById('chart-bar-dia');
+    if (ctxB && comMedicao.length) {
+      const labels = comMedicao.map(a => a.nome.length > 14 ? a.nome.substring(0,13)+'…' : a.nome);
+      const dlAndValues = comMedicao.map(a => {
+        const med = medDia.find(m => String(m.antena_id) === String(a.id));
+        return med && med.dl_android != null && med.dl_android !== '' ? Number(med.dl_android) : null;
+      });
+      const dlIosValues = comMedicao.map(a => {
+        const med = medDia.find(m => String(m.antena_id) === String(a.id));
+        return med && med.dl_ios != null && med.dl_ios !== '' ? Number(med.dl_ios) : null;
+      });
+      _chartBarDia = new Chart(ctxB, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Android DL', data: dlAndValues, backgroundColor: 'rgba(34,201,135,0.7)', borderRadius: 4, borderSkipped: false },
+            { label: 'iOS DL',     data: dlIosValues, backgroundColor: 'rgba(91,156,246,0.7)',  borderRadius: 4, borderSkipped: false },
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true, labels: { color: '#8b909c', font: { family: 'JetBrains Mono', size: 10 }, boxWidth: 10, padding: 8 } },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.x ?? '—'} Mbps` } }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#555b68', font: { family: 'JetBrains Mono', size: 10 } },
+              suggestedMax: Math.max(META * 1.1, ...dlAndValues.filter(Boolean), ...dlIosValues.filter(Boolean)) || META,
+            },
+            y: { ticks: { color: '#8b909c', font: { family: 'DM Sans', size: 10 } }, grid: { display: false } }
+          }
+        }
+      });
+    }
+  }, 80);
+
+  // ── Detalhes
+  const ordenadas = [
+    ...comMedicao.filter(a => { const med = medDia.find(m=>String(m.antena_id)===String(a.id)); const min=_minAntena(med); return min!==null && min < ALERTA; }),
+    ...comMedicao.filter(a => { const med = medDia.find(m=>String(m.antena_id)===String(a.id)); const min=_minAntena(med); return min!==null && min >= ALERTA && min < META; }),
+    ...comMedicao.filter(a => { const med = medDia.find(m=>String(m.antena_id)===String(a.id)); const min=_minAntena(med); return min!==null && min >= META; }),
+    ...semMedicao,
+  ];
+  const detEl = document.getElementById('rel-antenas-detalhe');
+  if (detEl) {
+    detEl.innerHTML = ordenadas.map(a => cardAntenaDia(a, medDia, false)).join('');
+    if (isentas.length) {
+      detEl.innerHTML += `<div class="rel-section-lbl" style="color:var(--purple);">🔧 Antenas isentas</div>` + isentas.map(a => cardAntenaDia(a, medDia, true)).join('');
+    }
+    if (!comMedicao.length && !isentas.length) {
+      detEl.innerHTML = `<div class="rel-empty-state"><div class="rel-empty-icon">📭</div><div class="rel-empty-msg">Nenhuma medição registrada nesta data</div></div>`;
+    }
+  }
+  _buildExportStateDia(data, dataFmt, diaSemana, comMedicao, semMedicao, medDia, totalOk, totalAtencao, totalAlerta, cobertura, taxaOk, mediaGeral, mediaUL);
+}
+
+function cardAntenaDia(antena, medDia, isIsenta) {
+  const med = medDia.find(m => String(m.antena_id) === String(antena.id));
+  if (!med && !isIsenta) {
+    return `<div class="rel-ant-item sem-med">
+      <div class="rel-ant-header">
+        <div class="rel-ant-name">📡 ${antena.nome}</div>
+        <span class="rel-ant-status" style="${_statusStyle('sem-med')}">Sem medição</span>
+      </div>
+    </div>`;
+  }
+  if (!med) return '';
+  const minV = _minAntena(med);
+  const st   = isIsenta ? 'isento' : _statusAntena(minV);
+  const temAnd = med.dl_android != null && med.dl_android !== '';
+  const temIos = med.dl_ios != null && med.dl_ios !== '';
+  const maxBar = META * 1.2;
+  const barHtml = (v) => `<div class="rel-med-mini-bar"><div class="rel-med-mini-fill" style="width:${Math.min(100,Math.round(Number(v)/maxBar*100))}%;background:${stCor(Number(v))}"></div></div>`;
+
+  let speedsHtml = '';
+  if (temAnd) {
+    speedsHtml += `<div class="rel-med-row">
+      <div class="rel-med-plat">📱 Android</div>
+      <div class="rel-med-speeds">
+        <div class="rel-med-speed-item">
+          <div class="rel-med-speed-val" style="color:${stCor(med.dl_android)}">↓ ${med.dl_android}</div>
+          <div class="rel-med-speed-lbl">Mbps DL</div>
+          ${barHtml(med.dl_android)}
+        </div>
+        <div class="rel-med-speed-item">
+          <div class="rel-med-speed-val" style="color:${stCor(med.ul_android)}">↑ ${med.ul_android}</div>
+          <div class="rel-med-speed-lbl">Mbps UL</div>
+          ${barHtml(med.ul_android)}
+        </div>
+      </div>
+    </div>`;
+  }
+  if (temIos) {
+    speedsHtml += `<div class="rel-med-row">
+      <div class="rel-med-plat">🍎 iOS</div>
+      <div class="rel-med-speeds">
+        <div class="rel-med-speed-item">
+          <div class="rel-med-speed-val" style="color:${stCor(med.dl_ios)}">↓ ${med.dl_ios}</div>
+          <div class="rel-med-speed-lbl">Mbps DL</div>
+          ${barHtml(med.dl_ios)}
+        </div>
+        <div class="rel-med-speed-item">
+          <div class="rel-med-speed-val" style="color:${stCor(med.ul_ios)}">↑ ${med.ul_ios}</div>
+          <div class="rel-med-speed-lbl">Mbps UL</div>
+          ${barHtml(med.ul_ios)}
+        </div>
+      </div>
+    </div>`;
+  }
+  return `<div class="rel-ant-item ${st}">
+    <div class="rel-ant-header">
+      <div class="rel-ant-name">📡 ${antena.nome}</div>
+      <span class="rel-ant-status" style="${_statusStyle(st)}">${_statusTxt(st)}</span>
+    </div>
+    <div class="rel-medicoes">${speedsHtml || '<div class="rel-ant-sem-med">Sem velocidades registradas</div>'}</div>
+  </div>`;
+}
+
+// ─── RELATÓRIO MÊS ─────────────────────────────────────────────────
+function gerarRelatorioMes() {
+  const mes = document.getElementById('rel-data-mes').value;
+  if (!mes) { toast('Selecione um mês', 'err'); return; }
+
+  const [ano, mm] = mes.split('-');
+  const mesesNomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const nomeMes    = `${mesesNomes[parseInt(mm)-1]} de ${ano}`;
+
+  const medMes = medicoes.filter(m => m.data && m.data.startsWith(mes));
+  const diasComMed = [...new Set(medMes.map(m => m.data))].sort();
+  const antenasAtivas = antenas.filter(a => a.isenta !== 'SIM');
+
+  // KPIs do mês
+  let totalOk=0, totalAtencao=0, totalAlerta=0;
+  let somaDL=0, contDL=0, somaUL=0, contUL=0;
+  const alertasPorAntena = {};
+  const okPorAntena = {};
+
+  medMes.forEach(med => {
+    const ant = antenasAtivas.find(a => String(a.id) === String(med.antena_id));
+    if (!ant) return;
+    const minV = _minAntena(med);
+    if (minV === null) return;
+    if (minV >= META)        { totalOk++; okPorAntena[ant.nome] = (okPorAntena[ant.nome]||0)+1; }
+    else if (minV >= ALERTA) { totalAtencao++; alertasPorAntena[ant.nome] = (alertasPorAntena[ant.nome]||0)+1; }
+    else                     { totalAlerta++;  alertasPorAntena[ant.nome] = (alertasPorAntena[ant.nome]||0)+1; }
+    const dl = [med.dl_android, med.dl_ios].filter(v=>v!=null&&v!==''&&!isNaN(v)).map(Number);
+    const ul = [med.ul_android, med.ul_ios].filter(v=>v!=null&&v!==''&&!isNaN(v)).map(Number);
+    dl.forEach(v => { somaDL += v; contDL++; });
+    ul.forEach(v => { somaUL += v; contUL++; });
+  });
+
+  const totalMed    = medMes.filter(m => antenasAtivas.find(a => String(a.id) === String(m.antena_id))).length;
+  const mediaGeral  = contDL > 0 ? Math.round(somaDL/contDL) : 0;
+  const mediaUL     = contUL > 0 ? Math.round(somaUL/contUL) : 0;
+  const taxaConf    = (totalOk+totalAtencao+totalAlerta) > 0 ? Math.round(totalOk/(totalOk+totalAtencao+totalAlerta)*100) : 0;
+  const diasCob     = diasComMed.length;
+  const cobCor      = taxaConf >= 80 ? 'var(--ok)' : taxaConf >= 50 ? 'var(--warn)' : 'var(--bad)';
+
+  // Top alertas por antena
+  const topAlertas = Object.entries(alertasPorAntena).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const topOk      = Object.entries(okPorAntena).sort((a,b)=>b[1]-a[1]).slice(0,3);
+
+  // Dados dos gráficos por dia
+  const coberturasPorDia   = diasComMed.map(d => {
+    const medDia = medMes.filter(m => m.data === d);
+    const comM   = antenasAtivas.filter(a => medDia.find(m => String(m.antena_id) === String(a.id)));
+    return antenasAtivas.length > 0 ? Math.round(comM.length/antenasAtivas.length*100) : 0;
+  });
+  const mediasDLPorDia = diasComMed.map(d => {
+    const medDia = medMes.filter(m => m.data === d);
+    const vals   = medDia.flatMap(m => [m.dl_android, m.dl_ios].filter(v=>v!=null&&v!==''&&!isNaN(v)).map(Number));
+    return vals.length ? Math.round(vals.reduce((s,x)=>s+x,0)/vals.length) : null;
+  });
+  const labDias = diasComMed.map(d => { const [,, dd] = d.split('-'); return dd+'/'+d.split('-')[1]; });
+
+  document.getElementById('rel-resultado').innerHTML = `
+    <div style="margin-bottom:14px;">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:2px;">📆 ${nomeMes}</div>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">${diasCob} dias com registros · ${totalMed} medições no total</div>
+    </div>
+
+    <!-- KPIs linha 1 -->
+    <div class="rel-kpi-grid-2">
+      <div class="rel-kpi-card kpi-green">
+        <div class="rel-kpi-icon">✅</div>
+        <div class="rel-kpi-val" style="color:${cobCor}">${taxaConf}%</div>
+        <div class="rel-kpi-lbl">Taxa de conformidade</div>
+        <div class="rel-kpi-sub" style="color:var(--text3)">${totalOk} OK de ${totalMed}</div>
+      </div>
+      <div class="rel-kpi-card kpi-blue">
+        <div class="rel-kpi-icon">📅</div>
+        <div class="rel-kpi-val" style="color:var(--info)">${diasCob}</div>
+        <div class="rel-kpi-lbl">Dias monitorados</div>
+        <div class="rel-kpi-sub" style="color:var(--text3)">${totalMed} medições</div>
+      </div>
+    </div>
+    <div class="rel-kpi-grid-4">
+      <div class="rel-kpi-card kpi-blue">
+        <div class="rel-kpi-val" style="color:var(--info)">${mediaGeral}</div>
+        <div class="rel-kpi-lbl">Mbps média DL</div>
+      </div>
+      <div class="rel-kpi-card kpi-purple">
+        <div class="rel-kpi-val" style="color:var(--purple)">${mediaUL}</div>
+        <div class="rel-kpi-lbl">Mbps média UL</div>
+      </div>
+      <div class="rel-kpi-card kpi-red">
+        <div class="rel-kpi-val" style="color:var(--bad)">${totalAlerta}</div>
+        <div class="rel-kpi-lbl">Em alerta</div>
+      </div>
+      <div class="rel-kpi-card kpi-yellow">
+        <div class="rel-kpi-val" style="color:var(--warn)">${totalAtencao}</div>
+        <div class="rel-kpi-lbl">Em atenção</div>
+      </div>
+    </div>
+
+    <!-- Gráfico linha: velocidade média DL por dia -->
+    <div class="rel-chart-card">
+      <div class="rel-chart-title">📈 Velocidade média de Download por dia (Mbps)</div>
+      <div class="rel-chart-wrap" style="height:180px;">
+        <canvas id="chart-line-mes"></canvas>
+      </div>
+    </div>
+
+    <!-- Gráfico barras: cobertura por dia -->
+    <div class="rel-chart-card">
+      <div class="rel-chart-title">📡 Cobertura de medição por dia (%)</div>
+      <div class="rel-chart-wrap" style="height:160px;">
+        <canvas id="chart-bar-mes"></canvas>
+      </div>
+    </div>
+
+    <!-- Donut + ranking alertas -->
+    <div class="rel-kpi-grid-2">
+      <div class="rel-chart-card" style="margin:0;">
+        <div class="rel-chart-title">🥧 Status geral</div>
+        <div class="rel-donut-wrap" style="flex-direction:column;align-items:center;gap:10px;">
+          <canvas id="chart-donut-mes" width="110" height="110"></canvas>
+          <div class="rel-donut-legend" style="width:100%;">
+            <div class="rel-legend-item"><div class="rel-legend-dot" style="background:#22c987"></div><div class="rel-legend-lbl">OK</div><div class="rel-legend-val" style="color:var(--ok)">${totalOk}</div></div>
+            <div class="rel-legend-item"><div class="rel-legend-dot" style="background:#f5a623"></div><div class="rel-legend-lbl">Atenção</div><div class="rel-legend-val" style="color:var(--warn)">${totalAtencao}</div></div>
+            <div class="rel-legend-item"><div class="rel-legend-dot" style="background:#f05252"></div><div class="rel-legend-lbl">Alerta</div><div class="rel-legend-val" style="color:var(--bad)">${totalAlerta}</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="rel-chart-card" style="margin:0;">
+        <div class="rel-chart-title">⚠️ Mais alertas</div>
+        <div class="rel-rank-list">
+          ${topAlertas.length ? topAlertas.map((x,i) => {
+            const maxA = topAlertas[0][1] || 1;
+            return `<div class="rel-rank-item">
+              <div class="rel-rank-num">${i+1}</div>
+              <div class="rel-rank-name" title="${x[0]}">${x[0]}</div>
+              <div class="rel-rank-bar-bg"><div class="rel-rank-bar-fill" style="width:${Math.round(x[1]/maxA*100)}%;background:var(--bad)"></div></div>
+              <div class="rel-rank-val" style="color:var(--bad)">${x[1]}x</div>
+            </div>`;
+          }).join('') : '<div style="font-size:11px;color:var(--ok);text-align:center;padding:10px;">🎉 Nenhum alerta!</div>'}
+        </div>
+      </div>
+    </div>
+
+    <!-- Linha do tempo colapsável por dia -->
+    <div class="rel-section-lbl" style="margin-top:14px;">📋 Detalhes por dia</div>
+    <div id="rel-dias-detalhe"></div>
+  `;
+
+  // ── Charts
+  setTimeout(() => {
+    // Linha DL
+    const ctxL = document.getElementById('chart-line-mes');
+    if (ctxL) {
+      _chartLineMes = new Chart(ctxL, {
+        type: 'line',
+        data: {
+          labels: labDias,
+          datasets: [{
+            label: 'Média DL (Mbps)',
+            data: mediasDLPorDia,
+            borderColor: '#5b9cf6',
+            backgroundColor: 'rgba(91,156,246,0.10)',
+            pointBackgroundColor: mediasDLPorDia.map(v => v===null?'transparent': v>=META?'#22c987':v>=ALERTA?'#f5a623':'#f05252'),
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            fill: true,
+            tension: 0.35,
+            spanGaps: true,
+          }, {
+            label: `Meta (${META} Mbps)`,
+            data: Array(labDias.length).fill(META),
+            borderColor: 'rgba(34,201,135,0.4)',
+            borderDash: [5,4],
+            pointRadius: 0,
+            fill: false,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true, labels: { color:'#8b909c', font:{family:'JetBrains Mono',size:10}, boxWidth:10, padding:8 } },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y ?? '—'} Mbps` } }
+          },
+          scales: {
+            x: { ticks:{ color:'#555b68', font:{family:'JetBrains Mono',size:9}, maxRotation:45 }, grid:{ color:'rgba(255,255,255,0.04)' } },
+            y: { ticks:{ color:'#555b68', font:{family:'JetBrains Mono',size:10} }, grid:{ color:'rgba(255,255,255,0.05)' }, min:0 }
+          }
+        }
+      });
+    }
+
+    // Barras cobertura
+    const ctxB = document.getElementById('chart-bar-mes');
+    if (ctxB) {
+      _chartBarMes = new Chart(ctxB, {
+        type: 'bar',
+        data: {
+          labels: labDias,
+          datasets: [{
+            label: 'Cobertura %',
+            data: coberturasPorDia,
+            backgroundColor: coberturasPorDia.map(v => v>=80?'rgba(34,201,135,0.7)':v>=50?'rgba(245,166,35,0.7)':'rgba(240,82,82,0.7)'),
+            borderRadius: 4,
+            borderSkipped: false,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` Cobertura: ${ctx.parsed.y}%` } }
+          },
+          scales: {
+            x: { ticks:{ color:'#555b68', font:{family:'JetBrains Mono',size:9}, maxRotation:45 }, grid:{ display:false } },
+            y: { min:0, max:100, ticks:{ color:'#555b68', font:{family:'JetBrains Mono',size:10}, callback: v => v+'%' }, grid:{ color:'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+    }
+
+    // Donut mês
+    const ctxDM = document.getElementById('chart-donut-mes');
+    if (ctxDM) {
+      _chartDonut = new Chart(ctxDM, {
+        type: 'doughnut',
+        data: {
+          datasets: [{ data:[totalOk,totalAtencao,totalAlerta], backgroundColor:['#22c987','#f5a623','#f05252'], borderWidth:0, hoverOffset:4 }]
+        },
+        options: { cutout:'65%', plugins:{ legend:{display:false}, tooltip:{enabled:false} }, animation:{duration:700} }
+      });
+    }
+  }, 80);
+
+  // ── Detalhes colapsáveis por dia
+  const diasEl = document.getElementById('rel-dias-detalhe');
+  if (diasEl) {
+    diasEl.innerHTML = diasComMed.map((data, idx) => {
+      const [y,m,d] = data.split('-');
+      const diasS   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+      const ds      = diasS[new Date(data+'T12:00:00').getDay()];
+      const medDia  = medMes.filter(m => m.data === data);
+      let okD=0, alertD=0, atencD=0;
+      medDia.forEach(med => {
+        const ant = antenasAtivas.find(a => String(a.id) === String(med.antena_id));
+        if (!ant) return;
+        const minV = _minAntena(med);
+        if (minV === null) return;
+        if (minV >= META) okD++;
+        else if (minV >= ALERTA) atencD++;
+        else alertD++;
+      });
+      const antenasNoDia    = antenasAtivas.filter(a => medDia.find(m => String(m.antena_id) === String(a.id)));
+      const isentasNoDia    = antenas.filter(a => a.isenta === 'SIM' && medDia.find(m => String(m.antena_id) === String(a.id)));
+      const cardsHtml = antenasNoDia.map(a => cardAntenaDia(a, medDia, false)).join('') +
+                        isentasNoDia.map(a => cardAntenaDia(a, medDia, true)).join('');
+      return `
+        <div class="rel-dia-toggle" id="toggle-${idx}" onclick="toggleDia(${idx})">
+          <div class="rel-dia-toggle-left">
+            <div class="rel-dia-toggle-date">📅 ${d}/${m} — ${ds}</div>
+            <div class="rel-dia-toggle-stats">
+              <span class="rel-dia-stat" style="color:var(--text3)">${medDia.length} med.</span>
+              <span class="rel-dia-stat" style="color:var(--ok)">✓${okD}</span>
+              <span class="rel-dia-stat" style="color:var(--warn)">⚠${atencD}</span>
+              <span class="rel-dia-stat" style="color:var(--bad)">✕${alertD}</span>
+            </div>
+          </div>
+          <div class="rel-dia-toggle-arrow">▼</div>
+        </div>
+        <div class="rel-dia-body" id="body-${idx}">${cardsHtml}</div>`;
+    }).join('');
+  }
+  _buildExportStateMes(nomeMes, mes.split('-').reverse().join('/'), medMes, antenasAtivas, totalOk, totalAtencao, totalAlerta, totalMed, diasCob, mediaGeral, mediaUL, taxaConf, topAlertas);
+}
+
+function toggleDia(idx) {
+  const toggle = document.getElementById('toggle-'+idx);
+  const body   = document.getElementById('body-'+idx);
+  if (!toggle || !body) return;
+  const open = body.classList.toggle('open');
+  toggle.classList.toggle('open', open);
+}
+
+// ════════════ EXPORTAÇÃO ════════════
+
+// estado do relatório atual para exportação
+let _relExportState = null;
+
+function _setRelExportState(state) {
+  _relExportState = state;
+  const fab = document.getElementById('rel-export-fab');
+  if (fab) fab.classList.toggle('visible', !!state);
+  // mostra compartilhar só se API disponível
+  const shareOpt = document.getElementById('export-opt-share');
+  if (shareOpt) shareOpt.style.display = navigator.share ? 'flex' : 'none';
+}
+
+function abrirExportModal() {
+  document.getElementById('export-overlay').classList.add('open');
+}
+function fecharExportModal(e) {
+  if (e && e.target !== document.getElementById('export-overlay')) return;
+  document.getElementById('export-overlay').classList.remove('open');
+}
+
+// ── PDF via print ─────────────────────────────────────────────────
+function exportarPDF() {
+  fecharExportModal();
+  // Expande todos os dias colapsados para print
+  document.querySelectorAll('.rel-dia-body').forEach(b => b.classList.add('open'));
+  setTimeout(() => window.print(), 200);
+}
+
+// ── CSV ───────────────────────────────────────────────────────────
+function exportarCSV() {
+  fecharExportModal();
+  if (!_relExportState) return;
+  const { tipo, medicoesExport, periodo } = _relExportState;
+
+  const header = ['Data','Antena','Status','DL Android (Mbps)','UL Android (Mbps)','DL iOS (Mbps)','UL iOS (Mbps)','Média (Mbps)','Mínimo (Mbps)'];
+  const rows = medicoesExport.map(row => [
+    row.data_fmt, row.antena_nome, row.status_txt,
+    row.dl_and ?? '', row.ul_and ?? '',
+    row.dl_ios ?? '', row.ul_ios ?? '',
+    row.media  ?? '', row.minimo  ?? '',
+  ]);
+
+  // inclui antenas sem medição
+  if (_relExportState.semMedicao) {
+    _relExportState.semMedicao.forEach(a => {
+      rows.push([_relExportState.data_fmt || periodo, a.nome, 'Sem medição', '', '', '', '', '', '']);
+    });
+  }
+
+  const csvContent = [header, ...rows]
+    .map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `relatorio_wifi_${periodo.replace(/\//g,'-')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV baixado!', 'ok');
+}
+
+// ── Texto resumo para WhatsApp / e-mail ──────────────────────────
+function exportarTexto() {
+  fecharExportModal();
+  if (!_relExportState) return;
+  const txt = _relExportState.textoResumo;
+  navigator.clipboard.writeText(txt)
+    .then(() => toast('Resumo copiado!', 'ok'))
+    .catch(() => {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('Resumo copiado!', 'ok');
+    });
+}
+
+function exportarCompartilhar() {
+  fecharExportModal();
+  if (!_relExportState || !navigator.share) return;
+  navigator.share({ title: 'Relatório Wi-Fi CS', text: _relExportState.textoResumo })
+    .catch(() => {});
+}
+
+// ── Monta estado de exportação DIA ──────────────────────────────
+function _buildExportStateDia(data, dataFmt, diaSemana, comMedicao, semMedicao, medDia, totalOk, totalAtencao, totalAlerta, cobertura, taxaOk, mediaGeral, mediaUL) {
+  const medicoesExport = comMedicao.map(a => {
+    const med = medDia.find(m => String(m.antena_id) === String(a.id));
+    const minV = _minAntena(med); const avgV = _mediaAntena(med);
+    const st = _statusAntena(minV);
+    return {
+      data_fmt: dataFmt,
+      antena_nome: a.nome,
+      status_txt: _statusTxt(st),
+      dl_and: med.dl_android ?? '', ul_and: med.ul_android ?? '',
+      dl_ios: med.dl_ios ?? '',    ul_ios: med.ul_ios ?? '',
+      media:  avgV, minimo: minV,
+    };
+  });
+  // isentas
+  antenas.filter(a => a.isenta === 'SIM' && medDia.find(m => String(m.antena_id) === String(a.id))).forEach(a => {
+    const med = medDia.find(m => String(m.antena_id) === String(a.id));
+    medicoesExport.push({ data_fmt: dataFmt, antena_nome: a.nome, status_txt: 'Isenta', dl_and: med.dl_android??'', ul_and: med.ul_android??'', dl_ios: med.dl_ios??'', ul_ios: med.ul_ios??'', media: _mediaAntena(med), minimo: _minAntena(med) });
+  });
+
+  const emAlerta = comMedicao.filter(a => { const med=medDia.find(m=>String(m.antena_id)===String(a.id)); const mn=_minAntena(med); return mn!==null&&mn<ALERTA; });
+  const linhasAlerta = emAlerta.slice(0,5).map(a => {
+    const med=medDia.find(m=>String(m.antena_id)===String(a.id));
+    return `  ✕ ${a.nome}: DL↓${med.dl_android||med.dl_ios||'?'} UL↑${med.ul_android||med.ul_ios||'?'} Mbps`;
+  }).join('\n');
+
+  const textoResumo = [
+    `📶 *Relatório Wi-Fi — Caruaru Shopping*`,
+    `📅 ${dataFmt} (${diaSemana})`,
+    ``,
+    `📡 Cobertura: ${cobertura}% (${comMedicao.length}/${comMedicao.length+semMedicao.length} antenas)`,
+    `✅ Taxa de conformidade: ${taxaOk}%`,
+    `📶 Média Download: ${mediaGeral} Mbps`,
+    `📶 Média Upload: ${mediaUL} Mbps`,
+    ``,
+    `✓ OK: ${totalOk}  ⚠ Atenção: ${totalAtencao}  ✕ Alerta: ${totalAlerta}  — Sem medição: ${semMedicao.length}`,
+    emAlerta.length ? `\n⚠️ *Antenas em alerta:*\n${linhasAlerta}` : `\n🎉 Nenhuma antena em alerta!`,
+    ``,
+    `_Gerado em ${new Date().toLocaleString('pt-BR')}_`,
+  ].join('\n');
+
+  _setRelExportState({ tipo:'dia', medicoesExport, semMedicao, periodo: dataFmt, data_fmt: dataFmt, textoResumo });
+}
+
+// ── Monta estado de exportação MÊS ──────────────────────────────
+function _buildExportStateMes(nomeMes, periodo, medMes, antenasAtivas, totalOk, totalAtencao, totalAlerta, totalMed, diasCob, mediaGeral, mediaUL, taxaConf, topAlertas) {
+  const medicoesExport = [];
+  medMes.forEach(med => {
+    const ant = antenas.find(a => String(a.id) === String(med.antena_id));
+    if (!ant) return;
+    const [y,m,d] = med.data.split('-');
+    const st = ant.isenta==='SIM' ? 'isento' : _statusAntena(_minAntena(med));
+    medicoesExport.push({
+      data_fmt: `${d}/${m}/${y}`,
+      antena_nome: ant.nome,
+      status_txt: _statusTxt(st),
+      dl_and: med.dl_android??'', ul_and: med.ul_android??'',
+      dl_ios: med.dl_ios??'',    ul_ios: med.ul_ios??'',
+      media: _mediaAntena(med), minimo: _minAntena(med),
+    });
+  });
+  medicoesExport.sort((a,b) => a.data_fmt.localeCompare(b.data_fmt)||a.antena_nome.localeCompare(b.antena_nome));
+
+  const linhasAlertas = topAlertas.slice(0,5).map(x => `  ✕ ${x[0]}: ${x[1]} ocorrência(s)`).join('\n');
+
+  const textoResumo = [
+    `📶 *Relatório Wi-Fi Mensal — Caruaru Shopping*`,
+    `📆 ${nomeMes}`,
+    ``,
+    `📊 Total de medições: ${totalMed}`,
+    `📅 Dias monitorados: ${diasCob}`,
+    `✅ Taxa de conformidade: ${taxaConf}%`,
+    `📶 Média Download: ${mediaGeral} Mbps`,
+    `📶 Média Upload: ${mediaUL} Mbps`,
+    ``,
+    `✓ OK: ${totalOk}  ⚠ Atenção: ${totalAtencao}  ✕ Alerta: ${totalAlerta}`,
+    topAlertas.length ? `\n⚠️ *Antenas com mais alertas:*\n${linhasAlertas}` : `\n🎉 Nenhuma antena em alerta!`,
+    ``,
+    `_Gerado em ${new Date().toLocaleString('pt-BR')}_`,
+  ].join('\n');
+
+  _setRelExportState({ tipo:'mes', medicoesExport, semMedicao:[], periodo, data_fmt: periodo, textoResumo });
+}
+
+
 abrirLanc=function(antId){
   _origAbrirLanc(antId);
   testeAtivo=false;
@@ -1602,69 +2835,6 @@ abrirLanc=function(antId){
 
 
 
-
-</script>
-
-<script>
-// Registra Service Worker para PWA instalável
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('SW registrado:', reg.scope))
-      .catch(err => console.log('SW erro:', err));
-  });
-}
-
-// Captura evento de instalação PWA — mostra botão "Instalar app"
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  // Mostra banner de instalação após login
-  mostrarBannerInstalar();
-});
-
-function mostrarBannerInstalar() {
-  if (!deferredPrompt) return;
-  // Só mostra se o app não estiver em modo standalone
-  if (window.matchMedia('(display-mode: standalone)').matches) return;
-
-  const banner = document.createElement('div');
-  banner.id = 'install-banner';
-  banner.style.cssText = [
-    'position:fixed;bottom:calc(var(--nav-h,60px) + 12px);left:50%;',
-    'transform:translateX(-50%);',
-    'background:#1a1e25;border:1px solid rgba(91,156,246,0.3);',
-    'border-radius:12px;padding:10px 16px;',
-    'display:flex;align-items:center;gap:10px;',
-    'font-family:"DM Sans",sans-serif;font-size:13px;color:#e8eaf0;',
-    'z-index:500;box-shadow:0 4px 24px rgba(0,0,0,0.4);',
-    'white-space:nowrap;'
-  ].join('');
-  banner.innerHTML = `
-    <img src="/icons/icon-72x72.png" style="width:32px;height:32px;border-radius:7px;">
-    <div>
-      <div style="font-weight:600;font-size:12px;">Instalar CS Wi-Fi</div>
-      <div style="font-size:10px;color:#8b909c;">Adicionar à tela inicial</div>
-    </div>
-    <button onclick="instalarPWA()" style="background:#5b9cf6;border:none;border-radius:8px;padding:6px 14px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Instalar</button>
-    <button onclick="document.getElementById('install-banner').remove()" style="background:transparent;border:none;color:#555b68;cursor:pointer;font-size:18px;padding:0 2px;">✕</button>
-  `;
-  document.body.appendChild(banner);
-
-  // Remove automaticamente após 15s
-  setTimeout(() => banner.remove(), 15000);
-}
-
-async function instalarPWA() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  console.log('PWA install:', outcome);
-  deferredPrompt = null;
-  const banner = document.getElementById('install-banner');
-  if (banner) banner.remove();
-}
 </script>
 </body>
 </html>
