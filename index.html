@@ -2743,29 +2743,79 @@ function _buildExportStateDia(data, dataFmt, diaSemana, comMedicao, semMedicao, 
       media:  avgV, minimo: minV,
     };
   });
-  // isentas
   antenas.filter(a => a.isenta === 'SIM' && medDia.find(m => String(m.antena_id) === String(a.id))).forEach(a => {
     const med = medDia.find(m => String(m.antena_id) === String(a.id));
     medicoesExport.push({ data_fmt: dataFmt, antena_nome: a.nome, status_txt: 'Isenta', dl_and: med.dl_android??'', ul_and: med.ul_android??'', dl_ios: med.dl_ios??'', ul_ios: med.ul_ios??'', media: _mediaAntena(med), minimo: _minAntena(med) });
   });
 
-  const emAlerta = comMedicao.filter(a => { const med=medDia.find(m=>String(m.antena_id)===String(a.id)); const mn=_minAntena(med); return mn!==null&&mn<ALERTA; });
-  const linhasAlerta = emAlerta.slice(0,5).map(a => {
-    const med=medDia.find(m=>String(m.antena_id)===String(a.id));
-    return `  ✕ ${a.nome}: DL↓${med.dl_android||med.dl_ios||'?'} UL↑${med.ul_android||med.ul_ios||'?'} Mbps`;
-  }).join('\n');
+  // Antenas em ALERTA (abaixo de ALERTA Mbps no mínimo)
+  const emAlerta = comMedicao.filter(a => {
+    const med = medDia.find(m => String(m.antena_id) === String(a.id));
+    const mn = _minAntena(med); return mn !== null && mn < ALERTA;
+  });
+  // Antenas em ATENÇÃO (entre ALERTA e META)
+  const emAtencao = comMedicao.filter(a => {
+    const med = medDia.find(m => String(m.antena_id) === String(a.id));
+    const mn = _minAntena(med); return mn !== null && mn >= ALERTA && mn < META;
+  });
+
+  // Detalhe de uma antena: monta linha com plataformas e motivo
+  function linhaAntena(a, prefixo) {
+    const med = medDia.find(m => String(m.antena_id) === String(a.id));
+    const mn  = _minAntena(med);
+    const partes = [];
+    if (med.dl_android != null && med.dl_android !== '') partes.push(`Android ↓${med.dl_android}/↑${med.ul_android} Mbps`);
+    if (med.dl_ios != null && med.dl_ios !== '')         partes.push(`iOS ↓${med.dl_ios}/↑${med.ul_ios} Mbps`);
+    const motivo = mn < ALERTA
+      ? `velocidade mínima ${mn} Mbps — abaixo do limite de alerta (${ALERTA} Mbps)`
+      : `velocidade mínima ${mn} Mbps — abaixo da meta (${META} Mbps)`;
+    return `  ${prefixo} ${a.nome}\n     ${partes.join(' | ')}\n     Motivo: ${motivo}`;
+  }
+
+  const blocoAlerta  = emAlerta.length
+    ? `\n✕ *ALERTA* — ${emAlerta.length} antena(s) abaixo de ${ALERTA} Mbps:\n` +
+      `   (Velocidade crítica — necessita ação imediata)\n` +
+      emAlerta.map(a => linhaAntena(a, '✕')).join('\n')
+    : '';
+
+  const blocoAtencao = emAtencao.length
+    ? `\n⚠️ *ATENÇÃO* — ${emAtencao.length} antena(s) entre ${ALERTA} e ${META} Mbps:\n` +
+      `   (Velocidade abaixo da meta, mas acima do limite crítico)\n` +
+      emAtencao.map(a => linhaAntena(a, '⚠')).join('\n')
+    : '';
+
+  const semMedBloco = semMedicao.length
+    ? `\n— *Sem medição hoje:* ${semMedicao.map(a => a.nome).join(', ')}`
+    : '';
 
   const textoResumo = [
     `📶 *Relatório Wi-Fi — Caruaru Shopping*`,
     `📅 ${dataFmt} (${diaSemana})`,
     ``,
-    `📡 Cobertura: ${cobertura}% (${comMedicao.length}/${comMedicao.length+semMedicao.length} antenas)`,
-    `✅ Taxa de conformidade: ${taxaOk}%`,
-    `📶 Média Download: ${mediaGeral} Mbps`,
-    `📶 Média Upload: ${mediaUL} Mbps`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `📊 *KPIs do dia*`,
     ``,
-    `✓ OK: ${totalOk}  ⚠ Atenção: ${totalAtencao}  ✕ Alerta: ${totalAlerta}  — Sem medição: ${semMedicao.length}`,
-    emAlerta.length ? `\n⚠️ *Antenas em alerta:*\n${linhasAlerta}` : `\n🎉 Nenhuma antena em alerta!`,
+    `📡 Cobertura: ${cobertura}%  (${comMedicao.length} de ${comMedicao.length+semMedicao.length} antenas medidas)`,
+    ``,
+    `✅ Taxa de conformidade: ${taxaOk}%`,
+    `   ↳ Percentual de antenas medidas que atingiram`,
+    `     a meta de ${META} Mbps neste dia.`,
+    `     ${totalOk} OK · ${totalAtencao} atenção · ${totalAlerta} alerta`,
+    ``,
+    `📶 Velocidade média Download: ${mediaGeral} Mbps`,
+    `📶 Velocidade média Upload: ${mediaUL} Mbps`,
+    ``,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `📋 *Legenda de status*`,
+    ``,
+    `✓ OK        → ≥ ${META} Mbps  (dentro da meta)`,
+    `⚠ Atenção  → ${ALERTA}–${META-1} Mbps (abaixo da meta, mas aceitável)`,
+    `✕ Alerta   → < ${ALERTA} Mbps  (velocidade crítica — agir)`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    (blocoAlerta || blocoAtencao)
+      ? `\n🔎 *Antenas que precisam de atenção:*${blocoAlerta}${blocoAtencao}`
+      : `\n🎉 Todas as antenas medidas estão dentro da meta!`,
+    semMedBloco,
     ``,
     `_Gerado em ${new Date().toLocaleString('pt-BR')}_`,
   ].join('\n');
@@ -2792,20 +2842,55 @@ function _buildExportStateMes(nomeMes, periodo, medMes, antenasAtivas, totalOk, 
   });
   medicoesExport.sort((a,b) => a.data_fmt.localeCompare(b.data_fmt)||a.antena_nome.localeCompare(b.antena_nome));
 
-  const linhasAlertas = topAlertas.slice(0,5).map(x => `  ✕ ${x[0]}: ${x[1]} ocorrência(s)`).join('\n');
+  // Detalhes das antenas mais problemáticas (top alertas)
+  const linhasAlertas = topAlertas.slice(0, 5).map(x => {
+    // pega a pior medição desta antena no mês
+    const antObj = antenas.find(a => a.nome === x[0]);
+    const medsPiores = antObj
+      ? medMes
+          .filter(m => String(m.antena_id) === String(antObj.id))
+          .filter(m => { const mn = _minAntena(m); return mn !== null && mn < META; })
+          .sort((a, b) => (_minAntena(a)||999) - (_minAntena(b)||999))
+          .slice(0, 1)
+      : [];
+    const piorMed = medsPiores[0];
+    const mnPior  = piorMed ? _minAntena(piorMed) : null;
+    const motivoPior = mnPior !== null
+      ? (mnPior < ALERTA
+          ? `pior medição: ${mnPior} Mbps — abaixo do limite crítico (${ALERTA} Mbps)`
+          : `pior medição: ${mnPior} Mbps — abaixo da meta (${META} Mbps)`)
+      : '';
+    return `  ✕ ${x[0]}: ${x[1]} ocorrência(s)\n     ${motivoPior}`;
+  }).join('\n');
 
   const textoResumo = [
     `📶 *Relatório Wi-Fi Mensal — Caruaru Shopping*`,
     `📆 ${nomeMes}`,
     ``,
-    `📊 Total de medições: ${totalMed}`,
-    `📅 Dias monitorados: ${diasCob}`,
-    `✅ Taxa de conformidade: ${taxaConf}%`,
-    `📶 Média Download: ${mediaGeral} Mbps`,
-    `📶 Média Upload: ${mediaUL} Mbps`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `📊 *KPIs do mês*`,
     ``,
-    `✓ OK: ${totalOk}  ⚠ Atenção: ${totalAtencao}  ✕ Alerta: ${totalAlerta}`,
-    topAlertas.length ? `\n⚠️ *Antenas com mais alertas:*\n${linhasAlertas}` : `\n🎉 Nenhuma antena em alerta!`,
+    `📅 Dias monitorados: ${diasCob}`,
+    `📊 Total de medições: ${totalMed}`,
+    ``,
+    `✅ Taxa de conformidade: ${taxaConf}%`,
+    `   ↳ Percentual de medições (excl. isentas) em que`,
+    `     a velocidade mínima atingiu a meta de ${META} Mbps.`,
+    `     ${totalOk} OK · ${totalAtencao} atenção · ${totalAlerta} alerta`,
+    ``,
+    `📶 Velocidade média Download: ${mediaGeral} Mbps`,
+    `📶 Velocidade média Upload: ${mediaUL} Mbps`,
+    ``,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `📋 *Legenda de status*`,
+    ``,
+    `✓ OK        → ≥ ${META} Mbps  (dentro da meta)`,
+    `⚠ Atenção  → ${ALERTA}–${META-1} Mbps (abaixo da meta, mas aceitável)`,
+    `✕ Alerta   → < ${ALERTA} Mbps  (velocidade crítica — agir)`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    topAlertas.length
+      ? `\n⚠️ *Antenas com mais ocorrências fora da meta:*\n${linhasAlertas}`
+      : `\n🎉 Nenhuma antena em alerta durante o mês!`,
     ``,
     `_Gerado em ${new Date().toLocaleString('pt-BR')}_`,
   ].join('\n');
@@ -2813,7 +2898,7 @@ function _buildExportStateMes(nomeMes, periodo, medMes, antenasAtivas, totalOk, 
   _setRelExportState({ tipo:'mes', medicoesExport, semMedicao:[], periodo, data_fmt: periodo, textoResumo });
 }
 
-
+const _origAbrirLanc = abrirLanc;
 abrirLanc=function(antId){
   _origAbrirLanc(antId);
   testeAtivo=false;
