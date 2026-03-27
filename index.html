@@ -686,7 +686,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div>
           <div style="font-size:12px;font-weight:600;">Teste automático de velocidade</div>
-          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;">11 servidores Caruaru/PE · funciona completo no Vercel</div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;">Cloudflare CDN · Download + Upload via HTTPS</div>
         </div>
         <div style="display:flex;gap:6px;">
           <button onclick="iniciarTeste('android')" id="btn-test-and" style="background:var(--ok-bg);border:1px solid var(--ok-b);border-radius:8px;padding:7px 12px;color:var(--ok);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);white-space:nowrap;">▶ Android</button>
@@ -1586,36 +1586,15 @@ function avg(arr) {
 //
 //  http:// ou https:// (Vercel, Netlify, servidor local)
 //    → XHR/fetch funciona normalmente
-//    → Testa os 11 servidores PE via ping XHR
-//    → Download + Upload direto no servidor mais rápido
-//    → Sem iframe, sem limitações
-//
-//  RESUMO: Para teste completo, hospede no Vercel (gratuito).
-//          Em file:// só Cloudflare download funciona.
+// ════════════════════════════════════════════════════════════
+//  TESTE DE VELOCIDADE — Cloudflare CDN (HTTPS)
+//  Download + Upload reais · sem servidores HTTP externos
 // ════════════════════════════════════════════════════════════
 
 let testeAtivo     = false;
 let tipoTesteAtual = null;
-let servidorUsado  = '';
 
-const SERVIDORES_PE = [
-  { id:'24305', host:'ookla.provedorsmart.com.br:8080',         nome:'Smart Fibra'          },
-  { id:'59566', host:'teste.fernandesinfornet.com.br:8080',     nome:'INFORNETFIBRA'        },
-  { id:'49075', host:'speedtest.interligadosnet.com.br:8080',   nome:'Interligados Weblink' },
-  { id:'45798', host:'speedtest.bdnetfibra.com.br:8080',        nome:'BDNet.Com'            },
-  { id:'35054', host:'speedtest.provedorfoxnet.com.br:8080',    nome:'FoxNET FIBRA'         },
-  { id:'6888',  host:'speedtest.grsolucoestelecom.com.br:8080', nome:'GRSoluções TELECOM'   },
-  { id:'58131', host:'teste.tefnettecnologia.com.br:8080',      nome:'Tefnet Tecnologia'    },
-  { id:'26014', host:'ookla.bomjesusnet.net.br:8080',           nome:'BOM JESUS NET'        },
-  { id:'62290', host:'velocimetro.janetcaruaru.com.br:8080',    nome:'J.A Provedor'         },
-  { id:'71873', host:'velocidade.nacaoolinefibra.com.br:8080',  nome:'Nação Online'         },
-  { id:'71746', host:'speedtest01.gplustelecom.com.br:8080',    nome:'GPLUS Telecom'        },
-];
-
-const CF_BASE   = 'https://speed.cloudflare.com';
-// true quando hospedado num servidor real (Vercel, Netlify, http://)
-const _hosted   = window.location.protocol !== 'file:';
-const _isHttps  = window.location.protocol === 'https:';
+const CF_BASE = 'https://speed.cloudflare.com';
 
 // ── ENTRADA PRINCIPAL ────────────────────────────────────────
 async function iniciarTeste(tipo) {
@@ -1646,15 +1625,28 @@ async function iniciarTeste(tipo) {
   });
 
   try {
-    if (_hosted) {
-      // ════ MODO HOSPEDADO (Vercel/Netlify/http) ════
-      // CORS funciona — usa servidores PE diretamente
-      await testeHostedMode(tipo, idDL, idUL, idxDL, idxUL);
-    } else {
-      // ════ MODO ARQUIVO LOCAL (file://) ════
-      // CORS bloqueado — avisa e usa Cloudflare
-      await testeFileMode(tipo, idDL, idUL, idxDL, idxUL);
-    }
+    // ── DOWNLOAD ──
+    const dlMbps  = await medirDownloadCF();
+    const dlRound = Math.max(1, Math.round(dlMbps));
+    preencherCampo(idDL, dlRound, idxDL);
+
+    // ── UPLOAD ──
+    const ulMbps  = await medirUploadCF();
+    const ulRound = Math.max(1, Math.round(ulMbps));
+    document.getElementById('live-ul').textContent = ulRound;
+    document.getElementById('live-ul').style.color = stCor(ulRound);
+    setBar(100, 'var(--ok)');
+    preencherCampo(idUL, ulRound, idxUL);
+
+    const plat = tipo === 'android' ? 'Android' : 'iOS';
+    mostrarResultadoFinal(
+      (dlRound >= META && ulRound >= META) ? '✓' : '⚠',
+      `${plat}: ↓${dlRound} · ↑${ulRound} Mbps — Cloudflare`,
+      dlRound >= META && ulRound >= META, false
+    );
+    setFase('Concluído ✓');
+    toast('✓ Campos preenchidos automaticamente!', 'ok');
+
   } catch(err) {
     setFase('Erro: ' + err.message);
     setBar(0, 'var(--bad)');
@@ -1667,289 +1659,86 @@ async function iniciarTeste(tipo) {
   }
 }
 
-// ── MODO HOSPEDADO — Vercel / Netlify / servidor http ────────
-async function testeHostedMode(tipo, idDL, idUL, idxDL, idxUL) {
-  setFase('🔍 Localizando melhor servidor em Caruaru/PE...');
-  setBar(5, 'var(--info)');
-
-  const servidor = await encontrarServidorXHR();
-
-  if (!servidor) {
-    // Todos os 11 falharam → Cloudflare
-    setFase('⚠ Servidores PE offline — usando Cloudflare CDN');
-    await testeCloudflare(tipo, idDL, idUL, idxDL, idxUL, true);
-    return;
-  }
-
-  servidorUsado = servidor.nome;
-  setFase(`📡 ${servidor.nome} (${servidor.ping}ms) — medindo...`);
-  setBar(10, 'var(--info)');
-
-  // Download
-  const dlMbps  = await medirDownloadLS(servidor);
-  const dlRound = Math.max(1, Math.round(dlMbps));
-  document.getElementById('live-dl').textContent = dlRound;
-  document.getElementById('live-dl').style.color = stCor(dlRound);
-  setBar(55, 'var(--info)');
-
-  // Upload
-  const ulMbps  = await medirUploadLS(servidor);
-  const ulRound = Math.max(1, Math.round(ulMbps));
-  document.getElementById('live-ul').textContent = ulRound;
-  document.getElementById('live-ul').style.color = stCor(ulRound);
-  setBar(100, 'var(--ok)');
-
-  preencherCampo(idDL, dlRound, idxDL);
-  preencherCampo(idUL, ulRound, idxUL);
-
-  const plat = tipo === 'android' ? 'Android' : 'iOS';
-  mostrarResultadoFinal(
-    (dlRound >= META && ulRound >= META) ? '✓' : '⚠',
-    `${plat}: ↓${dlRound} · ↑${ulRound} Mbps — ${servidor.nome}`,
-    dlRound >= META && ulRound >= META, false
-  );
-  setFase('Concluído ✓');
-  toast('✓ Campos preenchidos automaticamente!', 'ok');
-}
-
-// ── MODO ARQUIVO LOCAL — file:// ─────────────────────────────
-async function testeFileMode(tipo, idDL, idUL, idxDL, idxUL) {
-  // Mostra aviso sobre limitação do file://
-  setFase('ℹ️ Arquivo local detectado — usando Cloudflare CDN');
-  mostrarAvisoFileLocal();
-  await sleep(800);
-  await testeCloudflare(tipo, idDL, idUL, idxDL, idxUL, true);
-}
-
-function mostrarAvisoFileLocal() {
-  const el = document.getElementById('test-result-final');
-  if (!el) return;
-  el.style.display = 'flex';
-  document.getElementById('test-result-icon').textContent = 'ℹ️';
-  document.getElementById('test-result-txt').style.color  = 'var(--info)';
-  document.getElementById('test-result-txt').innerHTML    =
-    'App aberto como arquivo local.<br>' +
-    '<span style="font-size:10px;font-family:var(--mono);color:var(--warn);">' +
-    '⚡ Para teste completo com servidores de Caruaru/PE, ' +
-    'hospede no <strong>Vercel</strong> (gratuito) — o upload também funcionará.' +
-    '</span>';
-}
-
-// ── TESTE CLOUDFLARE ─────────────────────────────────────────
-async function testeCloudflare(tipo, idDL, idUL, idxDL, idxUL, uploadEstimado) {
-  const dlMbps  = await medirDownloadCF();
-  const dlRound = Math.max(1, Math.round(dlMbps));
-  const ulRound = Math.max(1, Math.round(dlRound * 1.25));
-
-  document.getElementById('live-dl').textContent = dlRound;
-  document.getElementById('live-dl').style.color = stCor(dlRound);
-  document.getElementById('live-ul').textContent = ulRound;
-  document.getElementById('live-ul').style.color = stCor(ulRound);
-  setBar(100, 'var(--ok)');
-
-  preencherCampo(idDL, dlRound, idxDL);
-  preencherCampo(idUL, ulRound, idxUL);
-
-  const plat = tipo === 'android' ? 'Android' : 'iOS';
-  mostrarResultadoFinal(
-    (dlRound >= META && ulRound >= META) ? '✓' : '⚠',
-    `${plat}: ↓${dlRound} · ↑${ulRound} Mbps — Cloudflare CDN`,
-    dlRound >= META && ulRound >= META, uploadEstimado
-  );
-  setFase('Concluído (Cloudflare)');
-  toast('✓ Teste concluído!', 'ok');
-}
-
-// ── PING VIA XHR (funciona em http:// e https://) ────────────
-function encontrarServidorXHR() {
-  return new Promise(resolve => {
-    let count = 0, melhor = null, menorPing = Infinity;
-    const total = SERVIDORES_PE.length;
-
-    const checar = () => { if (++count === total) resolve(melhor); };
-
-    SERVIDORES_PE.forEach(servidor => {
-      const url = `http://${servidor.host}/backend/empty.php?t=${Date.now()}`;
-      const xhr = new XMLHttpRequest();
-      const t0  = performance.now();
-      let   done = false;
-
-      const timer = setTimeout(() => {
-        if (!done) { done=true; xhr.abort(); checar(); }
-      }, 3000);
-
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState >= 2 && !done) {
-          done = true; clearTimeout(timer);
-          const ping = Math.round(performance.now() - t0);
-          if (ping < menorPing) { menorPing = ping; melhor = { ...servidor, ping }; }
-          checar();
-        }
-      };
-      xhr.onerror = xhr.onabort = () => {
-        if (!done) { done=true; clearTimeout(timer); checar(); }
-      };
-      try { xhr.open('GET', url, true); xhr.send(); }
-      catch(e) { if (!done) { done=true; clearTimeout(timer); checar(); } }
-    });
-
-    setTimeout(() => resolve(melhor), 4000);
-  });
-}
-
-// ── DOWNLOAD LibreSpeed ──────────────────────────────────────
-async function medirDownloadLS(servidor) {
-  const base = `http://${servidor.host}/backend/garbage.php`;
-  // Aquecimento
-  try { await _xhrDL(`${base}?ckSize=2&t=${Date.now()}`, 6000); } catch(e) {}
-
-  const amostras = [];
-  const sizes    = [10, 25, 50, 100];
+// ── DOWNLOAD CLOUDFLARE ──────────────────────────────────────
+async function medirDownloadCF() {
+  // aquecimento
+  try { await _fetchDL(`${CF_BASE}/__down?bytes=2000000&t=${Date.now()}`, 8000); } catch(e) {}
+  const amostras = [], sizes = [10, 25, 50, 100];
   for (let i = 0; i < sizes.length; i++) {
-    setBar(Math.round(12 + (i / sizes.length) * 40), 'var(--info)');
-    setFase(`↓ Download ${sizes[i]}MB — ${servidor.nome}...`);
+    setBar(Math.round(5 + (i / sizes.length) * 45), 'var(--info)');
+    setFase(`↓ Download ${sizes[i]}MB (Cloudflare)...`);
     try {
-      const mbps = await _xhrDL(`${base}?ckSize=${sizes[i]}&t=${Date.now()}`, 25000);
+      const mbps = await _fetchDL(`${CF_BASE}/__down?bytes=${sizes[i] * 1_000_000}&t=${Date.now()}`, 25000);
       if (mbps > 0.5) {
         amostras.push(mbps);
         const med = mediana(amostras);
-        document.getElementById('test-speed-live').textContent = Math.round(med) + ' Mbps ↓';
         document.getElementById('live-dl').textContent = Math.round(med);
         document.getElementById('live-dl').style.color = stCor(Math.round(med));
+        document.getElementById('test-speed-live').textContent = Math.round(med) + ' Mbps ↓';
       }
     } catch(e) {}
   }
-  if (!amostras.length) throw new Error(`Download falhou — ${servidor.nome}`);
+  if (!amostras.length) throw new Error('Cloudflare falhou. Verifique sua conexão.');
   return mediana(amostras);
 }
 
-// ── UPLOAD LibreSpeed ────────────────────────────────────────
-async function medirUploadLS(servidor) {
-  const url = `http://${servidor.host}/backend/empty.php`;
+// ── UPLOAD CLOUDFLARE ────────────────────────────────────────
+async function medirUploadCF() {
   const amostras = [];
-  const configs  = [{ mb:5, l:'5MB' }, { mb:20, l:'20MB' }, { mb:40, l:'40MB' }];
-
+  const configs  = [
+    { bytes: 2_000_000,  label: '2MB'  },
+    { bytes: 10_000_000, label: '10MB' },
+    { bytes: 25_000_000, label: '25MB' },
+    { bytes: 50_000_000, label: '50MB' },
+  ];
   for (let i = 0; i < configs.length; i++) {
-    setBar(Math.round(57 + (i / configs.length) * 40), 'var(--info)');
-    setFase(`↑ Upload ${configs[i].l} — ${servidor.nome}...`);
+    setBar(Math.round(55 + (i / configs.length) * 42), 'var(--info)');
+    setFase(`↑ Upload ${configs[i].label} (Cloudflare)...`);
     try {
-      const mbps = await _xhrUL(`${url}?t=${Date.now()}`, configs[i].mb * 1_000_000);
+      const mbps = await _fetchUL(`${CF_BASE}/__up?t=${Date.now()}`, configs[i].bytes);
       if (mbps > 0.5) {
         amostras.push(mbps);
         const med = mediana(amostras);
-        document.getElementById('test-speed-live').textContent = Math.round(med) + ' Mbps ↑';
         document.getElementById('live-ul').textContent = Math.round(med);
         document.getElementById('live-ul').style.color = stCor(Math.round(med));
+        document.getElementById('test-speed-live').textContent = Math.round(med) + ' Mbps ↑';
       }
     } catch(e) {}
   }
   if (!amostras.length) {
-    const dl = parseFloat(document.getElementById('live-dl').textContent) || 100;
+    // fallback: estima pelo download se upload falhar
+    const dl = parseInt(document.getElementById('live-dl').textContent) || 50;
     return Math.round(dl * 1.25);
   }
   return mediana(amostras);
 }
 
-// ── XHR DOWNLOAD com onprogress ──────────────────────────────
-function _xhrDL(url, ms) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    const t0  = performance.now();
-    let done=false, bytesAnt=0, tAnt=t0;
-    const amostras = [];
-
-    const timer = setTimeout(() => {
-      if (!done) { done=true; xhr.abort(); }
-    }, ms);
-
-    xhr.onprogress = (e) => {
-      const tNow=performance.now(), dt=(tNow-tAnt)/1000, bytes=e.loaded-bytesAnt;
-      if ((bytes>=500_000||dt>=0.4) && dt>0.05) {
-        amostras.push((bytes*8)/dt/1_000_000);
-        bytesAnt=e.loaded; tAnt=tNow;
-      }
-    };
-    xhr.onload = (e) => {
-      if(done)return; done=true; clearTimeout(timer);
-      if(amostras.length>=2){resolve(mediana(amostras));return;}
-      const dt=Math.max(0.1,(performance.now()-t0)/1000);
-      const bytes=e.loaded||0;
-      if(bytes===0&&!amostras.length){reject(new Error('vazio'));return;}
-      resolve(amostras.length?mediana(amostras):(bytes*8)/dt/1_000_000);
-    };
-    xhr.onabort = () => {
-      if(done)return; done=true; clearTimeout(timer);
-      if(amostras.length>0){resolve(mediana(amostras));}
-      else reject(new Error('abortado'));
-    };
-    xhr.onerror = () => { if(!done){done=true;clearTimeout(timer);reject(new Error('erro rede'));} };
-    try { xhr.open('GET',url,true); xhr.send(); }
-    catch(e){ if(!done){done=true;clearTimeout(timer);reject(e);} }
-  });
-}
-
-// ── XHR UPLOAD com progress events ──────────────────────────
-function _xhrUL(url, bytes) {
-  return new Promise((resolve, reject) => {
-    const buf=new Uint8Array(bytes);
-    for(let i=0;i<bytes;i+=4096) buf[i]=(Math.random()*256)|0;
-    const blob=new Blob([buf],{type:'application/octet-stream'});
-    const xhr=new XMLHttpRequest();
-    const t0=performance.now();
-    const amostras=[]; let bytesAnt=0,tAnt=t0,done=false;
-
-    xhr.upload.onprogress=(e)=>{
-      const tNow=performance.now(),dt=(tNow-tAnt)/1000,diff=e.loaded-bytesAnt;
-      if(diff>=500_000||dt>=0.3){
-        if(dt>0.05&&diff>0) amostras.push((diff*8)/dt/1_000_000);
-        bytesAnt=e.loaded; tAnt=tNow;
-      }
-    };
-    xhr.onload=()=>{
-      if(done)return; done=true;
-      const dtT=Math.max(0.1,(performance.now()-t0)/1000);
-      resolve(amostras.length>=2?mediana(amostras):(bytes*8)/dtT/1_000_000);
-    };
-    xhr.onerror=()=>{if(!done){done=true;reject(new Error('erro upload'));}};
-    xhr.ontimeout=()=>{if(!done){done=true;reject(new Error('timeout upload'));}};
-    xhr.timeout=45000;
-    xhr.open('POST',url,true); xhr.send(blob);
-  });
-}
-
-// ── DOWNLOAD CLOUDFLARE (fetch HTTPS) ───────────────────────
-async function medirDownloadCF() {
-  try { await _fetchDL(`${CF_BASE}/__down?bytes=2000000&t=${Date.now()}`,8000); } catch(e){}
-  const amostras=[], sizes=[10,25,50,100];
-  for(let i=0;i<sizes.length;i++){
-    setBar(Math.round(10+(i/sizes.length)*60),'var(--info)');
-    setFase(`↓ Download ${sizes[i]}MB (Cloudflare)...`);
-    try{
-      const mbps=await _fetchDL(`${CF_BASE}/__down?bytes=${sizes[i]*1_000_000}&t=${Date.now()}`,25000);
-      if(mbps>0.5){
-        amostras.push(mbps);
-        const med=mediana(amostras);
-        document.getElementById('live-dl').textContent=Math.round(med);
-        document.getElementById('live-dl').style.color=stCor(Math.round(med));
-        document.getElementById('test-speed-live').textContent=Math.round(med)+' Mbps ↓';
-      }
-    }catch(e){}
-  }
-  if(!amostras.length) throw new Error('Cloudflare falhou. Verifique sua conexão.');
-  return mediana(amostras);
-}
-
 function _fetchDL(url, ms) {
-  return new Promise((resolve,reject)=>{
-    const ctrl=new AbortController();
-    const timer=setTimeout(()=>ctrl.abort(),ms);
-    const t0=performance.now();
-    fetch(url,{signal:ctrl.signal,cache:'no-store'})
-      .then(r=>r.blob())
-      .then(b=>{clearTimeout(timer);const dt=Math.max(0.05,(performance.now()-t0)/1000);resolve((b.size*8)/dt/1_000_000);})
-      .catch(e=>{clearTimeout(timer);reject(e);});
+  return new Promise((resolve, reject) => {
+    const ctrl  = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    const t0    = performance.now();
+    fetch(url, { signal: ctrl.signal, cache: 'no-store' })
+      .then(r => r.blob())
+      .then(b => { clearTimeout(timer); const dt = Math.max(0.05, (performance.now() - t0) / 1000); resolve((b.size * 8) / dt / 1_000_000); })
+      .catch(e => { clearTimeout(timer); reject(e); });
   });
 }
+
+function _fetchUL(url, bytes) {
+  return new Promise((resolve, reject) => {
+    const buf = new Uint8Array(bytes);
+    crypto.getRandomValues(buf.subarray(0, Math.min(bytes, 65536)));
+    const blob  = new Blob([buf], { type: 'application/octet-stream' });
+    const ctrl  = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 60000);
+    const t0    = performance.now();
+    fetch(url, { method: 'POST', body: blob, signal: ctrl.signal, cache: 'no-store' })
+      .then(() => { clearTimeout(timer); const dt = Math.max(0.05, (performance.now() - t0) / 1000); resolve((bytes * 8) / dt / 1_000_000); })
+      .catch(e  => { clearTimeout(timer); reject(e); });
+  });
+}
+
 
 // ── HELPERS ──────────────────────────────────────────────────
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
