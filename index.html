@@ -1835,7 +1835,7 @@ function _statusStyle(st) {
   return m[st] || m['sem-med'];
 }
 function _statusTxt(st) {
-  return {ok:'✓ OK', atencao:'⚠ Atenção', alerta:'✕ Alerta', isento:'🔧 Isenta', 'sem-med':'Sem medição'}[st] || '—';
+  return {ok:'✓ OK', atencao:'⚠ Atenção', alerta:'🚨 Alerta', isento:'🔧 Isenta', 'sem-med':'Sem medição'}[st] || '—';
 }
 
 // ─── RELATÓRIO DIA ─────────────────────────────────────────────────
@@ -2408,7 +2408,7 @@ function gerarRelatorioMes() {
               <span class="rel-dia-stat" style="color:var(--text3)">${medDia.length} med.</span>
               <span class="rel-dia-stat" style="color:var(--ok)">✓${okD}</span>
               <span class="rel-dia-stat" style="color:var(--warn)">⚠${atencD}</span>
-              <span class="rel-dia-stat" style="color:var(--bad)">✕${alertD}</span>
+              <span class="rel-dia-stat" style="color:var(--bad)">🚨${alertD}</span>
             </div>
           </div>
           <div class="rel-dia-toggle-arrow">▼</div>
@@ -2562,9 +2562,9 @@ function _buildExportStateDia(data, dataFmt, diaSemana, comMedicao, semMedicao, 
   }
 
   const blocoAlerta  = emAlerta.length
-    ? `\n✕ *ALERTA* — ${emAlerta.length} antena(s) abaixo de ${ALERTA} Mbps:\n` +
+    ? `\n🚨 *ALERTA* — ${emAlerta.length} antena(s) abaixo de ${ALERTA} Mbps:\n` +
       `   (Velocidade crítica — necessita ação imediata)\n` +
-      emAlerta.map(a => linhaAntena(a, '✕')).join('\n')
+      emAlerta.map(a => linhaAntena(a, '🚨')).join('\n')
     : '';
 
   const blocoAtencao = emAtencao.length
@@ -2599,7 +2599,7 @@ function _buildExportStateDia(data, dataFmt, diaSemana, comMedicao, semMedicao, 
     ``,
     `✓ OK        → ≥ ${META} Mbps  (dentro da meta)`,
     `⚠ Atenção  → ${ALERTA}–${META-1} Mbps (abaixo da meta, mas aceitável)`,
-    `✕ Alerta   → < ${ALERTA} Mbps  (velocidade crítica — agir)`,
+    `🚨 Alerta   → < ${ALERTA} Mbps  (velocidade crítica — agir)`,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
     (blocoAlerta || blocoAtencao)
       ? `\n🔎 *Antenas que precisam de atenção:*${blocoAlerta}${blocoAtencao}`
@@ -2675,7 +2675,7 @@ function _buildExportStateMes(nomeMes, periodo, medMes, antenasAtivas, totalOk, 
     ``,
     `✓ OK        → ≥ ${META} Mbps  (dentro da meta)`,
     `⚠ Atenção  → ${ALERTA}–${META-1} Mbps (abaixo da meta, mas aceitável)`,
-    `✕ Alerta   → < ${ALERTA} Mbps  (velocidade crítica — agir)`,
+    `🚨 Alerta   → < ${ALERTA} Mbps  (velocidade crítica — agir)`,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
     topAlertas.length
       ? `\n⚠️ *Antenas com mais ocorrências fora da meta:*\n${linhasAlertas}`
