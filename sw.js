@@ -1,6 +1,6 @@
 // CS Wi-Fi — Service Worker
 // Versão do cache — incrementar ao atualizar o app
-const CACHE_VERSION = 'cswifi-v1';
+const CACHE_VERSION = 'cswifi-v2';
 const CACHE_ASSETS  = [
   '/',
   '/index.html',
@@ -34,6 +34,8 @@ self.addEventListener('activate', event => {
 // Estratégia: Network First com fallback para cache
 // Garante dados atualizados quando online, funciona offline
 self.addEventListener('fetch', event => {
+  // Só faz cache de GET (POST do teste de upload e similares passam direto)
+  if (event.request.method !== 'GET') return;
   // Ignora requisições para APIs externas e speedtest
   const url = event.request.url;
   if (url.includes('script.google.com') ||
@@ -47,7 +49,7 @@ self.addEventListener('fetch', event => {
     fetch(event.request)
       .then(response => {
         // Atualiza cache com versão mais recente
-        if (response.ok) {
+        if (response.ok && url.startsWith(self.location.origin)) {
           const clone = response.clone();
           caches.open(CACHE_VERSION).then(cache => cache.put(event.request, clone));
         }

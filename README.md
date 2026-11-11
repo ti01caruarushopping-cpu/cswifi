@@ -56,6 +56,21 @@ vercel --prod
 
 ---
 
+## 📟 Endereço MAC das antenas (v3)
+
+A aba **Antenas** da planilha ganhou a coluna **`mac`**. Para atualizar uma planilha já existente:
+
+1. Abra o Apps Script da planilha e substitua o código pelo conteúdo de `Codigo do Apps Script.txt`
+2. Execute a função **`adicionarColunaMAC()`** uma vez (cria o cabeçalho `mac` sem mexer nos dados)
+3. **Implantar → Gerenciar implantações → ✏️ editar → Versão: Nova versão → Implantar** (a URL continua a mesma)
+4. Preencha os MACs pelo app (aba **Antenas → ✏️**) ou direto na coluna `mac` da planilha
+
+No app, a tela **Antenas** mostra quantas estão sem MAC, permite buscar por MAC, copiar a lista formatada para WhatsApp/e-mail (**📋 Copiar lista MAC**) e baixar um CSV (**📊 CSV das antenas**) para a equipe de ajustes. O MAC também aparece no lançamento, nos relatórios, no CSV e no resumo de texto.
+
+> Após atualizar o Apps Script, todos os usuários precisarão fazer login novamente (o token agora é assinado e vale 7 dias).
+
+---
+
 ## 🗂️ Estrutura de arquivos
 
 ```
@@ -65,6 +80,7 @@ cswifi/
 ├── sw.js               ← Service Worker (cache offline)
 ├── favicon.png         ← Ícone do navegador
 ├── vercel.json         ← Configuração do Vercel
+├── Codigo do Apps Script.txt ← Backend (colar no Apps Script da planilha)
 ├── .gitignore
 └── icons/
     ├── icon-72x72.png
